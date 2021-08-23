@@ -2,6 +2,7 @@
 
 struct Barco {
   char* nombre;
+  char* propietario;
   float eslora;
   float manga;
   int max_tripulantes;
@@ -9,16 +10,19 @@ struct Barco {
 
 void imprimirBarco(struct Barco* barco){
   printf("Barco: %s\n", (*barco).nombre);
+  printf("Propietario: %s\n", (*barco).propietario);
   printf("Eslora: %.2f\n", (*barco).eslora);
   printf("Manga: %.2f\n", (*barco).manga);
   printf("Máximo de tripulantes permitidos: %d\n", (*barco).max_tripulantes);
 }
 
 void getBarcoNuevo(struct Barco* barco){
-  char* tempNombre = (char*) malloc(30 * sizeof(char));
+  (*barco).nombre = (char*) malloc(30 * sizeof(char));
   printf("Ingrese el nombre del barco: ");
-  scanf("%s", tempNombre);
-  (*barco).nombre = tempNombre;
+  scanf("%s", (*barco).nombre);
+  (*barco).propietario = (char*) malloc(50 * sizeof(char));
+  printf("Ingrese el nombre del propietario: ");
+  scanf("%s", (*barco).propietario);
   printf("Ingrese el tamaño de la eslora: ");
   scanf("%f", &(*barco).eslora);
   printf("Ingrese el tamaño de la manga: ");
