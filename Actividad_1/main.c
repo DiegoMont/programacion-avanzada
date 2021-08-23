@@ -6,11 +6,11 @@
 
 
 int main(){
-  struct Barco barquito;
-  barquito.max_tripulantes = 6;
-  printf("%d", barquito.max_tripulantes);
-
-  struct Tripulante tripulante;
-  tripulante.rol = CAPITAN;
-  printf("%d", tripulante.rol);
+  struct Barco puerto[1];
+  puerto[0].nombre = "nombre";
+  printf("%s\n", puerto[0].nombre);
+  /* int totalBarcos = 0;
+  agregarBarco(puerto, &totalBarcos);
+  printf("%p\n", puerto[0].nombre);
+  printf("%p\n", puerto); */
 }
