@@ -12,12 +12,13 @@ void imprimirMenuPrincipal(struct Barco* puerto, int totalBarcos){
   printf("Qué deseas hacer:\n");
   printf("1. Ver registro de todas las embarcaciones\n");
   printf("2. Agregar un barco al registro\n");
+  printf("3. Salir de la aplicación\n");
   printf("Opciones para modificar barco individualmente:\n");
   struct Barco *aux = puerto;
   struct Barco *fin = puerto + totalBarcos;
   int i = 0;
   for(; aux < fin; aux++){
-    int opcionADesplegar = i + 3;
+    int opcionADesplegar = i + 4;
     printf("%d. %s\n", opcionADesplegar, (*aux).nombre);
     i++;
   }
@@ -71,8 +72,11 @@ int main(){
       imprimirRegistro(puerto, barcosEnPuerto);
     else if(seleccion == 2)
       puerto = agregarBarco(puerto, &barcosEnPuerto, &maxBarcos);
-    else if(seleccion < barcosEnPuerto + 3)
-      irAMenuBarco(puerto + seleccion - 3);
+    else if (seleccion == 3){
+      free(puerto);
+      return 0;
+    } else if(seleccion < barcosEnPuerto + 4)
+      irAMenuBarco(puerto + seleccion - 4);
     else
       printf("Opción no válida\n");
   }
