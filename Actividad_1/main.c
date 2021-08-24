@@ -3,19 +3,47 @@
 
 #include "Barco.c"
 
-void imprimirMenuPrincipal(){
+void imprimirMenuPrincipal(struct Barco* puerto, int totalBarcos){
   printf("Qué deseas hacer:\n");
   printf("1. Ver registro de todas las embarcaciones\n");
   printf("2. Agregar un barco al registro\n");
-  printf("Barcos disponibles:\n");
+  printf("Opciones para modificar barco individualmente:\n");
+  for(int i = 0; i < totalBarcos; i++){
+    int opcionADesplegar = i + 3;
+    printf("%d. %s\n", opcionADesplegar, puerto[i].nombre);
+  }
+  printf("Ingrese una opción:");
 }
 
 void imprimirRegistro(struct Barco* puerto, int totalBarcos){
-  for(int i = 0; i < totalBarcos; i++){
+  struct Barco *aux = puerto;
+  struct Barco *fin = puerto + totalBarcos;
+  for(; aux < fin; aux++){
     printf("************************************\n");
-    struct Barco* referenciaBarco = puerto + i;
-    imprimirBarco(referenciaBarco);
+    imprimirBarco(aux);
     printf("************************************\n");
+  }
+}
+
+void irAMenuBarco(struct Barco* barco){
+  int seleccion = -1;
+  while(seleccion != 1){
+    int hayEspaciosDisponibles = (*barco).max_tripulantes > (*barco).totalTripulacion;
+    printf("Menú de %s\n", (*barco).nombre);
+    printf("1. Regresar al menú principal\n");
+    printf("2. Imprimir tripulación\n");
+    if(hayEspaciosDisponibles)
+      printf("3. Agregar miembro a la tripulación\n");
+    printf("Elige una opción: ");
+    scanf("%d", &seleccion);
+    if(seleccion == 1)
+      continue;
+    else if(seleccion == 2)
+      imprimirTripulacion(barco);
+    else if(hayEspaciosDisponibles && seleccion == 3)
+      agregarTripulante(barco);
+    else
+      printf("Opción no válida\n");
   }
 }
 
@@ -25,12 +53,16 @@ int main(){
   printf("No hay barcos en el puerto, comencemos agregando uno\n");
   puerto = agregarBarco(puerto, &barcosEnPuerto);
   while(1){
-    imprimirMenuPrincipal();
+    imprimirMenuPrincipal(puerto, barcosEnPuerto);
     int seleccion;
     scanf("%d", &seleccion);
     if(seleccion == 1)
       imprimirRegistro(puerto, barcosEnPuerto);
     else if(seleccion == 2)
       puerto = agregarBarco(puerto, &barcosEnPuerto);
+    else if(seleccion < barcosEnPuerto + 3)
+      irAMenuBarco(puerto + seleccion - 3);
+    else
+      printf("Opción no válida\n");
   }
 }
