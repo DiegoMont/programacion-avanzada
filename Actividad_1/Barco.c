@@ -36,9 +36,13 @@ void getBarcoNuevo(struct Barco* barco){
   (*barco).totalTripulacion = 0;
 }
 
-struct Barco* agregarBarco(struct Barco* puerto, int* numeroBarcos){
-  int sizeOfPuertoNuevo = (*numeroBarcos + 1) * sizeof(struct Barco);
-  puerto = (struct Barco*) realloc(puerto, sizeOfPuertoNuevo);
+struct Barco* agregarBarco(struct Barco* puerto, int* numeroBarcos, int* maxBarcos){
+  if(*maxBarcos == *numeroBarcos){
+    const int ESPACIOS_EXTRAS_A_AUMENTAR = 5;
+    (*maxBarcos) += ESPACIOS_EXTRAS_A_AUMENTAR;
+    int sizeOfPuertoNuevo = (*maxBarcos) * sizeof(struct Barco);
+    puerto = (struct Barco*) realloc(puerto, sizeOfPuertoNuevo);
+  }
   struct Barco* refANuevoBarco = puerto + *numeroBarcos;
   getBarcoNuevo(refANuevoBarco);
   (*numeroBarcos)++;
