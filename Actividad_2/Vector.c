@@ -1,5 +1,7 @@
 #include<stdlib.h>
 
+#include "Libro.c"
+
 struct Nodo {
   void* valor;
   struct Nodo* siguiente;
@@ -28,6 +30,7 @@ struct Vector* vector(size_t dataTypeSize){
   vector->first = NULL;
   return vector;
 }
+
 
 int isEmpty(struct Vector* vector){
   return vector->first == NULL;
@@ -77,7 +80,6 @@ struct Vector* vector_elements( size_t dataTypeSize, size_t times){
   }
 return newVector;
 }
-
 
 
 void vector_copies(struct Vector* vector, size_t times, void* element){
@@ -136,3 +138,76 @@ void insert_copies(struct Vector* vector, size_t pos,size_t times, void* element
     i++;
   }
 }
+
+
+void pop_back(struct Vector* vector){
+  struct Nodo* nodoFinal = end(vector);
+  if(nodoFinal->anterior== NULL){
+    free(nodoFinal);
+    vector->first=NULL;
+  }else{
+    nodoFinal->anterior->siguiente=NULL;
+    free(nodoFinal);
+  }
+  vector->length--;
+}
+
+
+void clear(struct Vector* vector){
+  while(vector->first!=NULL){
+    pop_back(vector);
+  } 
+  free(vector);
+}
+
+void* next(struct Vector* vector){
+  struct Nodo* aux= vector->first;
+  return aux->siguiente;
+}
+
+
+
+/* void errase(struct Vector* vector, size_t pos){
+
+} */
+
+
+
+typedef void (*t_print)(struct Vector* vector);
+
+void printer(struct Vector* vector, t_print algorithm){
+  (*algorithm)(vector);
+}
+
+void printerStruct(struct Vector* vector){
+  struct Nodo* aux = vector->first;
+    while (aux != NULL)
+    {
+      printf("%s tiene %d paginas\n", ((struct Libro*) aux->valor)->titulo,((struct Libro*) aux->valor)->paginas);
+      aux = aux->siguiente;
+    }
+} 
+
+void printerInt(struct Vector* vector){
+  struct Nodo* aux = vector->first;
+    while (aux != NULL)
+    {
+      printf(" %4d", *(int *)aux->valor);
+      aux = aux->siguiente;
+    }
+    printf("\n");
+} 
+
+void printerFloat(struct Vector* vector){
+  struct Nodo* aux = vector->first;
+    while (aux != NULL)
+    {
+      printf(" %7.2f", *(float *)aux->valor);
+      aux = aux->siguiente;
+    }
+    printf("\n");
+} 
+
+
+
+
