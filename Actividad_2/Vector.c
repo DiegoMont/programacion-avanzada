@@ -103,50 +103,37 @@ void* back(struct Vector* vector){
   return nodoFinal->valor;
 }
 
-
-void insert(struct Vector* vector, size_t pos, void* element){
-  size_t counter = 1;
-  if(pos == vector->length + 1)
-    push_back(vector, element);
-  else{
-    struct Nodo* nodoNuevo = (struct Nodo*) malloc(sizeof(struct Nodo));
-    nodoNuevo->valor = element;
-    if( counter == pos){
-      nodoNuevo->anterior = NULL;
-      nodoNuevo->siguiente=vector->first;
-      vector->first= nodoNuevo;
-    }else{
-      struct Nodo* aux = vector->first;
-      while(counter < pos ){
-      aux = aux->siguiente;
-      counter++;
-      }
-      nodoNuevo->siguiente = aux;
-      nodoNuevo->anterior =aux->anterior;
-      aux->anterior->siguiente = nodoNuevo;
-      aux->anterior = nodoNuevo;
-      
-    }
+struct Nodo* insert(struct Vector* vector, struct Nodo* pos, void* x){
+  if(pos == NULL)
+    return NULL;
+  void* valorActual = pos->valor;
+  struct Nodo* nodoNuevo = (struct Nodo*) malloc(sizeof(struct Nodo));
+  nodoNuevo->valor = valorActual;
+  nodoNuevo->anterior = pos;
+  nodoNuevo->siguiente = pos->siguiente;
+  pos->siguiente = nodoNuevo;
+  pos->valor = x;
   vector->length++;
-  }
+  return pos;
 }
 
-void insert_copies(struct Vector* vector, size_t pos,size_t times, void* element){
-  size_t i = 0;
-  while( i < times){
-    insert(vector,pos,element);
-    i++;
-  }
+void insertN(struct Vector* vector, struct Nodo* pos, size_t n, void* x){
+  if(pos == NULL)
+    return;
+  void* valorActual;
+  for(int i = 0; i < n; i++)
+    insert(vector, pos, x);
 }
-
 
 void pop_back(struct Vector* vector){
   struct Nodo* nodoFinal = end(vector);
-  if(nodoFinal->anterior== NULL){
+  if(nodoFinal == NULL)
+    return;
+  if(nodoFinal->anterior == NULL){
     free(nodoFinal);
-    vector->first=NULL;
+    vector->first = NULL;
   }else{
-    nodoFinal->anterior->siguiente=NULL;
+    nodoFinal->anterior->siguiente = NULL;
     free(nodoFinal);
   }
   vector->length--;
