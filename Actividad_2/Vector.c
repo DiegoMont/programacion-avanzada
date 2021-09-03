@@ -188,7 +188,3 @@ void printerChar(struct Vector* vector){
     }
     printf("\n");
 } 
-
-
-
-

@@ -1,3 +1,8 @@
+/*
+  Archana Verma Rodríguez   A01335895
+  Diego Montaño Martínez    A01651308
+*/
+
 #include <stdio.h>
 
 #include "Vector.c"
@@ -31,19 +36,21 @@ int main(){
   else
     printf("La lista contiene %zu elementos\n\n", lista->length);
 
+  
   // lista de enteros;
   int uno = 1, dos = 2, tres = 3;
   struct Vector* listaEnteros = vectorNCopias(3, &uno);
   push_back(listaEnteros, &dos);
   push_back(listaEnteros, &tres);
   iterator segundoEntero = next(begin(listaEnteros));
-  printf("Valor: %d\n", *((int*)(segundoEntero->valor)));
+  printf("Valor del segundo elemento: %d\n", *((int*)(segundoEntero->valor)));
   erase(listaEnteros, segundoEntero);
   printer(listaEnteros,&printerInt);
   printf("Length arreglo: %zu\n", listaEnteros->length);
+  printf("Valor del último elemento: %d\n", *((int*) back(listaEnteros)));
+
 
   // lista de caracteres;
-
   char a = 'a', b = 'b';
   struct Vector* listaCaracteres = vectorN(2);
   iterator primerCaracter = begin(listaCaracteres);
@@ -51,6 +58,8 @@ int main(){
   iterator segundoCaracter = next(primerCaracter);
   segundoCaracter->valor = &b;
   printer(listaCaracteres,&printerChar);
+  printf("Valor del primer elemento: %c\n", *((char*) front(listaCaracteres)));
+
   // Limpiando memoria
   clear(lista);
   free(lista);
