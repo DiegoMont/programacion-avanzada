@@ -2,6 +2,8 @@
 
 #include "Libro.c"
 
+#define iterator struct Nodo*
+
 struct Nodo {
   void* valor;
   struct Nodo* siguiente;
@@ -10,22 +12,11 @@ struct Nodo {
 
 struct Vector {
   struct Nodo* first;
-  size_t dataTypeSize;
   size_t length;
 };
 
-const size_t VECTOR_INITIAL_SIZE = 10;
-
-/* struct Vector* vector(size_t n, void* t, size_t dataTypeSize){
-}
-
-void* vector(size_t n, size_t dataTypeSize){
-
-} */
-
-struct Vector* vector(size_t dataTypeSize){
+struct Vector* vector(){
   struct Vector* vector = (struct Vector*) malloc(sizeof(struct Vector));
-  vector->dataTypeSize = dataTypeSize;
   vector->length = 0;
   vector->first = NULL;
   return vector;
@@ -63,32 +54,15 @@ void push_back(struct Vector* vector, void* element){
   vector->length++;
 }
 
-struct Vector* vector_elements( size_t dataTypeSize, size_t times){
-  struct Vector* newVector = vector(dataTypeSize);
-  while(newVector->length < times){
-    struct Nodo* nodoNuevo = (struct Nodo*) malloc(sizeof(struct Nodo));
-    nodoNuevo->siguiente = NULL;
-    if(isEmpty(newVector)){
-      newVector->first = nodoNuevo;
-      nodoNuevo->anterior = NULL;
-    }else{
-      struct Nodo* nodoFinal = end(newVector);
-      nodoFinal->siguiente = nodoNuevo;
-      nodoNuevo->anterior = nodoFinal;
-    }
-    newVector->length++;
-  }
-return newVector;
+struct Vector* vectorNCopias(size_t n, void* element){
+  struct Vector* vectorAux = vector();
+  for(int i = 0; i < n; i++)
+    push_back(vectorAux, element);
+  return vectorAux;
 }
 
-
-void vector_copies(struct Vector* vector, size_t times, void* element){
-  size_t i = 0;
-  while(i < times){
-    push_back(vector,element);
-    i++;
-  }
-  
+struct Vector* vectorN(size_t n, void* element){
+  return vectorNCopias(n, NULL);
 }
 
 void* front(struct Vector* vector){
@@ -147,18 +121,29 @@ void clear(struct Vector* vector){
   free(vector);
 }
 
-void* next(struct Vector* vector){
-  struct Nodo* aux= vector->first;
-  return aux->siguiente;
+iterator next(iterator pos){
+  return pos == NULL ? NULL: pos->siguiente;
 }
 
+iterator erase(struct Vector* vector, iterator pos){
+  if(pos == NULL)
+    return NULL;
+  iterator followingElement = pos->siguiente;
+  if(pos->anterior != NULL)
+    pos->anterior->siguiente = followingElement;
+  if(pos == vector->first)
+    vector->first = followingElement;
+  free(pos);
+  vector->length--;
+  return followingElement;
+}
 
-
-/* void errase(struct Vector* vector, size_t pos){
-
-} */
-
-
+iterator eraseRange(struct Vector* vector, iterator first, iterator last){
+  while(last != first){
+    first = erase(vector, first);
+  }
+  return first;
+}
 
 typedef void (*t_print)(struct Vector* vector);
 
@@ -190,6 +175,16 @@ void printerFloat(struct Vector* vector){
     while (aux != NULL)
     {
       printf(" %7.2f", *(float *)aux->valor);
+      aux = aux->siguiente;
+    }
+    printf("\n");
+} 
+
+void printerChar(struct Vector* vector){
+  struct Nodo* aux = vector->first;
+    while (aux != NULL)
+    {
+      printf(" %c", *(char *)aux->valor);
       aux = aux->siguiente;
     }
     printf("\n");
