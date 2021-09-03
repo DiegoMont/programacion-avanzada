@@ -61,7 +61,7 @@ struct Vector* vectorNCopias(size_t n, void* element){
   return vectorAux;
 }
 
-struct Vector* vectorN(size_t n, void* element){
+struct Vector* vectorN(size_t n){
   return vectorNCopias(n, NULL);
 }
 
@@ -113,12 +113,10 @@ void pop_back(struct Vector* vector){
   vector->length--;
 }
 
-
 void clear(struct Vector* vector){
   while(vector->first!=NULL){
     pop_back(vector);
   } 
-  free(vector);
 }
 
 iterator next(iterator pos){
@@ -131,6 +129,7 @@ iterator erase(struct Vector* vector, iterator pos){
   iterator followingElement = pos->siguiente;
   if(pos->anterior != NULL)
     pos->anterior->siguiente = followingElement;
+    pos->siguiente->anterior = pos->anterior;
   if(pos == vector->first)
     vector->first = followingElement;
   free(pos);

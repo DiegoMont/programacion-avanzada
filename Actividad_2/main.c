@@ -33,8 +33,7 @@ int main(){
 
   // lista de enteros;
   int uno = 1, dos = 2, tres = 3;
-  struct Vector* listaEnteros = vector();
-  push_back(listaEnteros, &uno);
+  struct Vector* listaEnteros = vectorNCopias(3, &uno);
   push_back(listaEnteros, &dos);
   push_back(listaEnteros, &tres);
   iterator segundoEntero = next(begin(listaEnteros));
@@ -42,4 +41,21 @@ int main(){
   erase(listaEnteros, segundoEntero);
   printer(listaEnteros,&printerInt);
   printf("Length arreglo: %zu\n", listaEnteros->length);
+
+  // lista de caracteres;
+
+  char a = 'a', b = 'b';
+  struct Vector* listaCaracteres = vectorN(2);
+  iterator primerCaracter = begin(listaCaracteres);
+  primerCaracter->valor = &a;
+  iterator segundoCaracter = next(primerCaracter);
+  segundoCaracter->valor = &b;
+  printer(listaCaracteres,&printerChar);
+  // Limpiando memoria
+  clear(lista);
+  free(lista);
+  clear(listaEnteros);
+  free(listaEnteros);
+  clear(listaCaracteres);
+  free(listaCaracteres);
 }
