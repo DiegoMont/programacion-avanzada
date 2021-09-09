@@ -11,7 +11,7 @@ struct Nodo {
 struct Vector {
   struct Nodo* first;
   size_t length;
-  int maxElement;
+  size_t maxElement;
 };
 
 struct Vector* vector(){

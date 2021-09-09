@@ -11,11 +11,11 @@
 #include "Vector.c"
 
 struct Archivo{
-    int cantidad;
+    size_t cantidad;
 
 };
 
-int max(int val1, int val2){
+int max(size_t val1, size_t val2){
     return val1 > val2 ? val1: val2;
 }
 
@@ -36,6 +36,7 @@ void recursiveReader(char *path, struct Vector* listaTamaños){
             struct Archivo* archivo = malloc(sizeof(struct Archivo));
             archivo->cantidad = file_attr.st_size;
             push_back(listaTamaños, &archivo);
+            //printf("----File: '%zu' \n",archivo->cantidad);
             listaTamaños->maxElement = max(listaTamaños->maxElement, archivo->cantidad);
             strcpy(tempPath, path);
             strcat(tempPath, "/");
@@ -49,10 +50,12 @@ void recursiveReader(char *path, struct Vector* listaTamaños){
 
 void llenarBuckets(int* buckets, struct Vector* listaTamaños){
     struct Nodo* nodoInicial = begin(listaTamaños);
-    int rango = listaTamaños->maxElement / 10;
+    long double rango = listaTamaños->maxElement / 10 + 1;
+    //printf("gap %Lf\n", rango);
     while(nodoInicial != NULL){
-        int size = *((int*) nodoInicial->valor);
-        int indiceBucket = size / rango;
+        size_t size = *((size_t*) nodoInicial->valor);
+        size_t indiceBucket = (size / rango);
+        //printf("Size: %zu  indice: %zu\n", size, indiceBucket);
         buckets[indiceBucket]++;
         nodoInicial = next(nodoInicial);
     }
@@ -80,7 +83,7 @@ int main(int argc, char * const * argv){
 
     struct Vector listaTamaños;
     recursiveReader(dvalue, &listaTamaños);
-    printf("Hay %zu archivos y el tamaño máximo es %i", listaTamaños.length, listaTamaños.maxElement);
+    printf("Hay %zu archivos y el tamaño máximo es %zu\n", listaTamaños.length, listaTamaños.maxElement);
     int buckets[10] = {};
     llenarBuckets(buckets, &listaTamaños);
     for(int i = 0; i < 10; i++)
