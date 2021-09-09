@@ -39,18 +39,19 @@ void recursiveReaderFalso(char *path, struct Vector* listaTamaños){
     archivo6->cantidad = 11;
     push_back(listaTamaños, archivo6);
     struct Archivo* archivo7 = malloc(sizeof(struct Archivo));
-    archivo7->cantidad = 19;
+    archivo7->cantidad = 90;
     push_back(listaTamaños, archivo7);
     listaTamaños->maxElement = 90;
 }
 
 void recursiveReader(char *path, struct Vector* listaTamaños){
-    char* tempPath = (char*)malloc(sizeof(char)*1000);
     struct dirent* dirp;
     DIR* dp = opendir(path);
     if (!dp)
         return;
 
+    
+    char* tempPath = (char*)malloc(sizeof(char)*1000);
     while ((dirp = readdir(dp)) != NULL)
     {
         if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0)
@@ -71,13 +72,52 @@ void recursiveReader(char *path, struct Vector* listaTamaños){
     free(tempPath);
 }
 
-void llenarBuckets(int* buckets, struct Vector* listaTamaños, size_t rango){
+void llenarBuckets(int* buckets, struct Vector* listaTamaños, size_t rango, int* bucketMasGrande){
     struct Nodo* nodoInicial = begin(listaTamaños);
     while(nodoInicial != NULL){
         size_t fileSize = *((size_t*) nodoInicial->valor);
         size_t indiceBucket = fileSize / rango;
         buckets[indiceBucket]++;
+        if(buckets[indiceBucket] > *bucketMasGrande)
+          *bucketMasGrande = buckets[indiceBucket];
         nodoInicial = next(nodoInicial);
+    }
+}
+
+void fillWithSpaces(char* buffer, int sizeOfString){
+    int currentLength = strlen(buffer);
+    for(;currentLength < sizeOfString; currentLength++)
+        strcat(buffer, " ");
+}
+
+void printBuckets(int* buckets, size_t rango, size_t numberOfBuckets, size_t numArchivos){
+    puts("Urna          Número de archivos Histograma");
+    int* final = buckets + numberOfBuckets;
+    int inicioRango = 0;
+    int finRango = rango - 1;
+
+    int archivosPorAsterisco = 1;
+    if(numberOfBuckets > 50)
+        archivosPorAsterisco = numberOfBuckets / 50 + 1;
+
+    for(int* aux = buckets; aux < final; aux++){
+        char txtRango[14] = {};
+        sprintf(txtRango, "%d-%d", inicioRango, finRango);
+        fillWithSpaces(txtRango, 13);
+
+        char txtNumFiles[19] = {};
+        sprintf(txtNumFiles, "%d", *aux);
+        fillWithSpaces(txtNumFiles, 18);
+
+        char txtGrafica[51] = {};
+        int numAsteriscos = *aux / archivosPorAsterisco;
+        int j = 0;
+        for(;j < numAsteriscos; j++)
+          strcat(txtGrafica, "*");
+
+        printf("%s %s %s\n", txtRango, txtNumFiles, txtGrafica);
+        inicioRango+=rango;
+        finRango+=rango;
     }
 }
 
@@ -106,10 +146,9 @@ int main(int argc, char * const * argv){
     size_t anchuraUrna = 15;
     size_t numberOfBuckets = listaTamaños.maxElement / anchuraUrna + 1;
     int* buckets = (int*) malloc(sizeof(int) * numberOfBuckets);
-    llenarBuckets(buckets, &listaTamaños, anchuraUrna);
-    for(int i = 0; i < 10; i++)
-      printf("%d ", buckets[i]);
-    puts("");
+    int bucketMasGrande = 0;
+    llenarBuckets(buckets, &listaTamaños, anchuraUrna, &bucketMasGrande);
+    printBuckets(buckets, anchuraUrna, numberOfBuckets, bucketMasGrande);
 
     return 0;
 }
