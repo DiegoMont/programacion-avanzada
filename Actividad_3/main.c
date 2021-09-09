@@ -58,8 +58,9 @@ void recursiveReader(char *path, struct Vector* listaTamaños){
         {
             struct stat file_attr;
             stat(dirp->d_name, &file_attr);
+            printf("File: '%s' Size: %lld bytes\n",dirp->d_name, file_attr.st_size);
             struct Archivo* archivo = malloc(sizeof(struct Archivo));
-            archivo->cantidad = file_attr.st_size;
+            archivo->cantidad = (size_t) file_attr.st_size;
             push_back(listaTamaños, archivo);
             listaTamaños->maxElement = max(listaTamaños->maxElement, archivo->cantidad);
             strcpy(tempPath, path);
@@ -121,30 +122,29 @@ void printBuckets(int* buckets, size_t rango, size_t numberOfBuckets, size_t num
     }
 }
 
-int main(int argc, char * const * argv){
+int main(int argc, char*  argv[]){
+    size_t anchuraUrna;
     char* dvalue = NULL;
-    int opt;
-
-    while((opt = getopt(argc, argv, "d:")) != -1){
-        switch(opt)
-        {
-            case 'd' :
-            dvalue = optarg;
-            break;
-            case '?' :
-                printf("error");
-                return 1;
-            default:
-                abort();
-
-        }
+    if(argc > 2){
+        anchuraUrna = (size_t) atoi(*argv);
+        dvalue = argv[1];
+    } else if(argc > 1){
+        anchuraUrna = (size_t) atoi(*argv);
+        dvalue = ".";
+    } else {
+        puts("Indica el rango de urna");
+        return 1;
     }
 
     struct Vector listaTamaños;
-    recursiveReaderFalso(dvalue, &listaTamaños);
+    recursiveReader(dvalue, &listaTamaños);
     printf("Hay %zu archivos y el tamaño máximo es %zu\n", listaTamaños.length, listaTamaños.maxElement);
-    size_t anchuraUrna = 15;
-    size_t numberOfBuckets = listaTamaños.maxElement / anchuraUrna + 1;
+    size_t numberOfBuckets = listaTamaños.maxElement;
+    puts("Todo bien hasta acá");
+    numberOfBuckets /= anchuraUrna;
+    puts("Todo bien hasta acá");
+    numberOfBuckets++;
+    puts("Todo bien hasta acá");
     int* buckets = (int*) malloc(sizeof(int) * numberOfBuckets);
     int bucketMasGrande = 0;
     llenarBuckets(buckets, &listaTamaños, anchuraUrna, &bucketMasGrande);
