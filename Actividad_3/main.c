@@ -20,32 +20,41 @@ size_t max(size_t val1, size_t val2){
 }
 
 void recursiveReader(char *path, struct Vector* listaTamaños){
-    struct dirent* dirp;
-    DIR* dp = opendir(path);
-    if (!dp)
+    DIR* currentOpenedDirectory = opendir(path);
+    if (currentOpenedDirectory == NULL)
         return;
-
     
-    char* tempPath = (char*)malloc(sizeof(char)*1000);
-    while ((dirp = readdir(dp)) != NULL)
-    {
-        if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0)
-        {
-            struct stat file_attr;
-            stat(dirp->d_name, &file_attr);
-            //printf("File: '%s' Size: %lld bytes\n",dirp->d_name, file_attr.st_size);
+    struct dirent* directoryEntry = readdir(currentOpenedDirectory);
+    int directoryPathLength = strlen(path);
+    
+    while (directoryEntry != NULL){
+        struct stat fileStats;
+        stat(directoryEntry->d_name, &fileStats);
+        if(S_ISDIR(fileStats.st_mode)){
+            int isParentDirectory = !strcmp(directoryEntry->d_name, "..");
+            int isCurrentDirectory = !strcmp(directoryEntry->d_name, ".");
+            if (!(isParentDirectory || isCurrentDirectory)) {
+                int subdirectoryNameLength = strlen(directoryEntry->d_name);
+                size_t subdirectoryLength = subdirectoryNameLength + directoryPathLength + 2;
+                char* subdirectoryPath = (char*) malloc(sizeof(char) * subdirectoryLength);
+                for(int i = 0; i < subdirectoryLength; i++)
+                    subdirectoryPath[i] = 0;
+                strcat(subdirectoryPath, path);
+                strcat(subdirectoryPath, "/");
+                strcat(subdirectoryPath, directoryEntry->d_name);
+                recursiveReader(subdirectoryPath, listaTamaños);
+                free(subdirectoryPath);
+            }
+        } else {
+            printf("File: '%s' Size: %lld bytes\n",directoryEntry->d_name, fileStats.st_size);
             struct Archivo* archivo = malloc(sizeof(struct Archivo));
-            archivo->cantidad = (size_t) file_attr.st_size;
+            archivo->cantidad = (size_t) fileStats.st_size;
             push_back(listaTamaños, archivo);
             listaTamaños->maxElement = max(listaTamaños->maxElement, archivo->cantidad);
-            strcpy(tempPath, path);
-            strcat(tempPath, "/");
-            strcat(tempPath, dirp->d_name);
-            recursiveReader(tempPath, listaTamaños);
         }
+        directoryEntry = readdir(currentOpenedDirectory);
     }
-    closedir(dp);
-    free(tempPath);
+    closedir(currentOpenedDirectory);
 }
 
 void llenarBuckets(int* buckets, struct Vector* listaTamaños, size_t rango, int* bucketMasGrande){
