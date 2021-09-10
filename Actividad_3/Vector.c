@@ -104,10 +104,12 @@ void pop_back(struct Vector* vector){
   if(nodoFinal == NULL)
     return;
   if(nodoFinal->anterior == NULL){
+    free(nodoFinal->valor);
     free(nodoFinal);
     vector->first = NULL;
   }else{
     nodoFinal->anterior->siguiente = NULL;
+    free(nodoFinal->valor);
     free(nodoFinal);
   }
   vector->length--;

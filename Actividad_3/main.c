@@ -1,3 +1,9 @@
+/*
+  With love <3 by: 
+    Archana Verma Rodríguez   A01335895
+    Diego Montaño Martínez    A01651308
+*/
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,6 +140,10 @@ int main(int argc, char*  argv[]){
     llenarBuckets(buckets, &listaTamaños, anchuraUrna, &bucketMasGrande);
     printBuckets(buckets, anchuraUrna, numberOfBuckets, bucketMasGrande);
 
+    //Limpiando ando
+    free(buckets);
+
+    clear(&listaTamaños);
     return 0;
 }
 
