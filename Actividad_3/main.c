@@ -19,31 +19,6 @@ size_t max(size_t val1, size_t val2){
     return val1 > val2 ? val1: val2;
 }
 
-void recursiveReaderFalso(char *path, struct Vector* listaTamaños){
-    struct Archivo* archivo1 = malloc(sizeof(struct Archivo));
-    archivo1->cantidad = 1;
-    push_back(listaTamaños, archivo1);
-    struct Archivo* archivo2 = malloc(sizeof(struct Archivo));
-    archivo2->cantidad = 2;
-    push_back(listaTamaños, archivo2);
-    struct Archivo* archivo3 = malloc(sizeof(struct Archivo));
-    archivo3->cantidad = 90;
-    push_back(listaTamaños, archivo3);
-    struct Archivo* archivo4 = malloc(sizeof(struct Archivo));
-    archivo4->cantidad = 2;
-    push_back(listaTamaños, archivo4);
-    struct Archivo* archivo5 = malloc(sizeof(struct Archivo));
-    archivo5->cantidad = 2;
-    push_back(listaTamaños, archivo5);
-    struct Archivo* archivo6 = malloc(sizeof(struct Archivo));
-    archivo6->cantidad = 11;
-    push_back(listaTamaños, archivo6);
-    struct Archivo* archivo7 = malloc(sizeof(struct Archivo));
-    archivo7->cantidad = 90;
-    push_back(listaTamaños, archivo7);
-    listaTamaños->maxElement = 90;
-}
-
 void recursiveReader(char *path, struct Vector* listaTamaños){
     struct dirent* dirp;
     DIR* dp = opendir(path);
@@ -58,7 +33,7 @@ void recursiveReader(char *path, struct Vector* listaTamaños){
         {
             struct stat file_attr;
             stat(dirp->d_name, &file_attr);
-            printf("File: '%s' Size: %lld bytes\n",dirp->d_name, file_attr.st_size);
+            //printf("File: '%s' Size: %lld bytes\n",dirp->d_name, file_attr.st_size);
             struct Archivo* archivo = malloc(sizeof(struct Archivo));
             archivo->cantidad = (size_t) file_attr.st_size;
             push_back(listaTamaños, archivo);
@@ -126,10 +101,10 @@ int main(int argc, char*  argv[]){
     size_t anchuraUrna;
     char* dvalue = NULL;
     if(argc > 2){
-        anchuraUrna = (size_t) atoi(*argv);
-        dvalue = argv[1];
+        anchuraUrna = (size_t) atoi(argv[1]);
+        dvalue = argv[2];
     } else if(argc > 1){
-        anchuraUrna = (size_t) atoi(*argv);
+        anchuraUrna = (size_t) atoi(argv[1]);
         dvalue = ".";
     } else {
         puts("Indica el rango de urna");
@@ -140,11 +115,8 @@ int main(int argc, char*  argv[]){
     recursiveReader(dvalue, &listaTamaños);
     printf("Hay %zu archivos y el tamaño máximo es %zu\n", listaTamaños.length, listaTamaños.maxElement);
     size_t numberOfBuckets = listaTamaños.maxElement;
-    puts("Todo bien hasta acá");
     numberOfBuckets /= anchuraUrna;
-    puts("Todo bien hasta acá");
     numberOfBuckets++;
-    puts("Todo bien hasta acá");
     int* buckets = (int*) malloc(sizeof(int) * numberOfBuckets);
     int bucketMasGrande = 0;
     llenarBuckets(buckets, &listaTamaños, anchuraUrna, &bucketMasGrande);
