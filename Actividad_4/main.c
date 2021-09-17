@@ -9,8 +9,9 @@ const int DURACION_CICLO_SEGUNDOS = 1;
 int posicionTortuga;
 int posicionLiebre;
 
-int randomNum(int min, int max){
-    return (rand() % (max - min + 1)) + min;
+int randomNum(int max){
+    srand(time(0));
+    return rand() % max;
 }
 
 /* int movimientoTortuga(int num){
@@ -129,8 +130,52 @@ void imprimirGanador(){
       puts("GANO LA TORTUGA!!!!! VIVA !!!!!");
 }
 
+void calcularPosicionLiebre(int fileDescriptor){
+    return;
+}
+
+void calcularPosicionTortuga(int fileDescriptor){
+    int probabilidad = randomNum(10);
+    int movimientoARealizar;
+    if(probabilidad < 5)
+        movimientoARealizar = 3;
+    else if(probabilidad < 7)
+        movimientoARealizar = -6;
+    else
+        movimientoARealizar = 1;
+    int nuevaPosicion = posicionTortuga + movimientoARealizar;
+    if(nuevaPosicion < 0)
+        nuevaPosicion = 0;
+
+    FILE * file;
+    file = fdopen(fileDescriptor, "w");
+    fprintf(file, "%d", nuevaPosicion);
+    printf("Tortuga = %d\n", nuevaPosicion);
+    fclose(file);
+}
+
+void leerPipesYActualizarPosiciones(int* pipeLiebre, int* pipeTortuga){
+    close(*(pipeLiebre + 1));
+    close(*(pipeTortuga + 1));
+
+    FILE * file;
+    int c;
+    
+    file = fdopen(*pipeLiebre, "r");
+    while ( (c = fgetc(file)) != EOF )
+        posicionLiebre = c;
+    fclose(file);
+
+    file = fdopen(*pipeTortuga, "r");
+    while ( (c = fgetc(file)) != EOF )
+        posicionTortuga = c;
+    fclose(file);
+}
+
 int main(){
     //Preparación de la carrera
+    time_t t;
+    srand((unsigned) time(&t));
     int pipeTortuga[2], pipeLiebre[2];
     pid_t pidLiebre, pidTortuga;
     pipe(pipeTortuga);
@@ -145,7 +190,25 @@ int main(){
         clock_t momentoActual = clock();
         clock_t segundosTranscurridos = (momentoActual - ultimaActualizacionPosiciones) / CLOCKS_PER_SEC;
         if( segundosTranscurridos >= DURACION_CICLO_SEGUNDOS){
-            // TODO: Implementar funcionalidad de movimiento de animales
+            pidLiebre = fork();
+            if (pidLiebre == -1)
+                ;
+            else if(pidLiebre == 0){
+                close(*(pipeLiebre + 0));
+                calcularPosicionLiebre(*(pipeLiebre + 1));
+                exit(0);
+            } else {
+                pidTortuga = fork();
+                if(pidTortuga == -1)
+                    ;
+                else if(pidTortuga == 0) {
+                    close(*(pipeTortuga + 0));
+                    calcularPosicionTortuga(*(pipeTortuga + 1));
+                    exit(0);
+                } else {
+                    //leerPipesYActualizarPosiciones(pipeLiebre, pipeTortuga);
+                }
+            }
             imprimirCarrera();
             ultimaActualizacionPosiciones = momentoActual;
         }
