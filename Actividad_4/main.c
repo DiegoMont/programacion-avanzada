@@ -3,11 +3,17 @@
 #include <stdlib.h>
 #include <time.h>
 
+const int LARGO_PISTA = 70;
+const int DURACION_CICLO_SEGUNDOS = 1;
+
+int posicionTortuga;
+int posicionLiebre;
+
 int randomNum(int min, int max){
     return (rand() % (max - min + 1)) + min;
 }
 
-int movimientoTortuga(int num){
+/* int movimientoTortuga(int num){
     switch (num)
     {
         case 1 ... 5:
@@ -87,54 +93,63 @@ void printerTablero(char *tablero, int casillas, int pos_tortuga, char t){
     printf("\n");
     printf("\n");
     
+} */
+
+void imprimirCarrera(){
+    for(int i = 0; i < LARGO_PISTA; i++){
+        int liebreSeEncuentraAqui = posicionLiebre == i;
+        int tortugaSeEncuentraAqui = posicionTortuga == i;
+        if(liebreSeEncuentraAqui && tortugaSeEncuentraAqui){
+            printf("OUCH!!!!");
+            break;
+        } else if(liebreSeEncuentraAqui)
+            printf("L");
+        else if(tortugaSeEncuentraAqui)
+            printf("T");
+        else
+            printf(" ");
+    }
+    printf("\n\n");
 }
 
-void imprimirJuego(int **fd, char *tablero, int casillas, char t){
-    int pos_tortuga = 0;
-    while(pos_tortuga < 70){
-        close(fd[0][1]);
-        close(fd[1][0]);
-        close(fd[1][1]);
-        read(fd[0][0], &pos_tortuga, sizeof(int));
-        //printf("---  Recibí %d  \n", pos_tortuga);  
-        printerTablero(tablero, casillas, pos_tortuga - 1, t);
-    }
+int terminoLaCarrera(){
+    const int POSICION_META = LARGO_PISTA - 1;
+    return posicionTortuga >= POSICION_META || posicionLiebre >= POSICION_META;
+}
+
+void imprimirGanador(){
+    const int POSICION_META = LARGO_PISTA - 1;
+    int liebreCruzoLaMeta = posicionLiebre >= POSICION_META;
+    int tortugaCruzoLaMeta = posicionTortuga >= POSICION_META;
+    if(liebreCruzoLaMeta && tortugaCruzoLaMeta)
+      puts("Es un empate");
+    else if(liebreCruzoLaMeta)
+      puts("Ganó la Liebre .Yupi");
+    else
+      puts("GANO LA TORTUGA!!!!! VIVA !!!!!");
 }
 
 int main(){
-    pid_t pid1, pid2;
-    int filas = 2, columnas = 2;
-    int** tubo = (int**) malloc(filas * sizeof(int*));
-    int** final = tubo + filas;
-    
-    for(int** aux = tubo; aux < final; aux++){
-        *aux = (int*)malloc(columnas * sizeof(int));
-        if(pipe(*aux) < 0)
-            return 1;
+    //Preparación de la carrera
+    int pipeTortuga[2], pipeLiebre[2];
+    pid_t pidLiebre, pidTortuga;
+    pipe(pipeTortuga);
+    pipe(pipeLiebre);
+
+    //Comienza la carrera
+    posicionTortuga = 10;    
+    posicionLiebre = 10;
+    puts("BANG!!!!!\nY ARRANCAN!!!!!");
+    clock_t ultimaActualizacionPosiciones = clock();
+    while(!terminoLaCarrera()){
+        clock_t momentoActual = clock();
+        clock_t segundosTranscurridos = (momentoActual - ultimaActualizacionPosiciones) / CLOCKS_PER_SEC;
+        if( segundosTranscurridos >= DURACION_CICLO_SEGUNDOS){
+            // TODO: Implementar funcionalidad de movimiento de animales
+            imprimirCarrera();
+            ultimaActualizacionPosiciones = momentoActual;
+        }
     }
-
-    pid1 = fork();
-    srand(time(0));
-
-    if( pid1 == 0){
-        printf("Estoy en el proceso hijo\n");
-        posicionTortuga(tubo);
-
-    }
-    else if (pid1 == -1)
-    {
-        /* Error al crear el proceso hijo */
-        exit(-1);
-    }
-    else {
-        printf("Estoy en el proceso padre\n");
-        int casillas = 70;
-        char *tablero = malloc(casillas * sizeof(char));
-        //printerTablero(tablero, casillas, -1, 'T');
-        imprimirJuego(tubo, tablero, casillas, 'T');
-    }
-
-
-    return 0;
+    imprimirGanador();
 }
 
