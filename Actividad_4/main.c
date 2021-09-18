@@ -18,10 +18,9 @@ void imprimirCarrera(){
     for(int i = 0; i < LARGO_PISTA; i++){
         int liebreSeEncuentraAqui = posicionLiebre == i;
         int tortugaSeEncuentraAqui = posicionTortuga == i;
-        if(liebreSeEncuentraAqui && tortugaSeEncuentraAqui){
+        if(liebreSeEncuentraAqui && tortugaSeEncuentraAqui)
             printf("OUCH!!!!");
-            break;
-        } else if(liebreSeEncuentraAqui)
+        else if(liebreSeEncuentraAqui)
             printf("L");
         else if(tortugaSeEncuentraAqui)
             printf("T");
@@ -68,7 +67,6 @@ void calcularPosicionLiebre(int fileDescriptor){
     FILE * file;
     file = fdopen(fileDescriptor, "w");
     fprintf(file, "%d", nuevaPosicion);
-    printf("Liebre = %d\n", nuevaPosicion);
     fclose(file);
 }
 
@@ -88,7 +86,6 @@ void calcularPosicionTortuga(int fileDescriptor){
     FILE * file;
     file = fdopen(fileDescriptor, "w");
     fprintf(file, "%d", nuevaPosicion);
-    printf("Tortuga = %d\n", nuevaPosicion);
     fclose(file);
 }
 
@@ -97,19 +94,15 @@ void leerPipesYActualizarPosiciones(int* pipeLiebre, int* pipeTortuga){
     close(*(pipeTortuga + 1));
 
     FILE * file;
-    int posicionAsChar;
     int posicionAsInt;
-    const int VALOR_ASCII_DE_CERO = 48;
 
     file = fdopen(*pipeLiebre, "r");
-    while ( (posicionAsChar = fgetc(file)) != EOF )
-        posicionAsInt = posicionAsChar - VALOR_ASCII_DE_CERO;
+    fscanf(file, "%d", &posicionAsInt);
     posicionLiebre = posicionAsInt;
     fclose(file);
 
     file = fdopen(*pipeTortuga, "r");
-    while ( (posicionAsChar = fgetc(file)) != EOF )
-        posicionAsInt = posicionAsChar - VALOR_ASCII_DE_CERO;
+    fscanf(file, "%d", &posicionAsInt);
     posicionTortuga = posicionAsInt;
     fclose(file);
 }
@@ -120,8 +113,6 @@ int main(){
     srand((unsigned) time(&t));
     int pipeTortuga[2], pipeLiebre[2];
     pid_t pidLiebre, pidTortuga;
-    pipe(pipeTortuga);
-    pipe(pipeLiebre);
 
     //Comienza la carrera
     posicionTortuga = 0;    
@@ -132,6 +123,8 @@ int main(){
         clock_t momentoActual = clock();
         clock_t segundosTranscurridos = (momentoActual - ultimaActualizacionPosiciones) / CLOCKS_PER_SEC;
         if( segundosTranscurridos >= DURACION_CICLO_SEGUNDOS){
+            pipe(pipeTortuga);
+            pipe(pipeLiebre);
             pidLiebre = fork();
             if (pidLiebre == -1)
                 ;
