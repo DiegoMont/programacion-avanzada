@@ -18,11 +18,13 @@ struct Day{
     int counterData;
 };
 
+struct Day* sensorsReadings;
+
 int main(){
     const int MAX_NUMBER_OF_SENSORS = 10;
     const size_t DAYS_IN_MONTH = 30;
     size_t bytesNeededToStoreInfo = MAX_NUMBER_OF_SENSORS * DAYS_IN_MONTH * sizeof(struct Day);
-    struct Day* sensorsReadings = createSharedMemory(bytesNeededToStoreInfo);
+    sensorsReadings = createSharedMemory(bytesNeededToStoreInfo);
     
     pid_t pid;
     pid = fork();
