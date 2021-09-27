@@ -18,17 +18,11 @@ struct Day{
     int counterData;
 };
 
-struct Sensor{
-    struct Dia* first;
-};
-
 int main(){
-    struct Sensor* sensors = (struct Sensor*) malloc(10 * sizeof(struct Sensor));
-    int *ptr = mmap(NULL,10 * sizeof(struct Sensor), PROT_READ | PROT_WRITE,MAP_SHARED | MAP_ANONYMOUS,0,0);
-    if(ptr == MAP_FAILED){
-        printf("Mapping Failed\n");
-        return 1;
-    }
+    const int MAX_NUMBER_OF_SENSORS = 10;
+    const size_t DAYS_IN_MONTH = 30;
+    size_t bytesNeededToStoreInfo = MAX_NUMBER_OF_SENSORS * DAYS_IN_MONTH * sizeof(struct Day);
+    struct Day* sensorsReadings = createSharedMemory(bytesNeededToStoreInfo);
     
     pid_t pid;
     pid = fork();
@@ -65,6 +59,20 @@ int main(){
             }
         }
     }
+
+    // Cleaning up
+    munmap(sensorsReadings, bytesNeededToStoreInfo);
+}
+
+struct Day* createSharedMemory(size_t size) {
+    int protection = PROT_READ | PROT_WRITE;
+    int visibility = MAP_SHARED | MAP_ANONYMOUS;
+    void* mappedMemory = mmap(NULL, size, protection, visibility, 0, 0);
+    if(mappedMemory == MAP_FAILED){
+        printf("Mapping Failed\n");
+        exit(1);
+    }
+    return (struct Day*) mappedMemory;
 }
 
 int initSocket(){
