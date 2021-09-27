@@ -33,26 +33,12 @@ int main() {
            ntohs(socketAddressInfo.sin_port));
 
     // Start sending input to server
-/*     char buffer[10];
-    size_t bufferSize = sizeof(buffer);
-    puts("Send negative number to finish program");
-    int connectionClosed = 0;
-    do {
-        scanf("%s", buffer);
-        short n = (short) atoi(buffer);
-        if(n < 0){
-            puts("Ending communication");
-            connectionClosed = 1;
-        } else {
-            char msgText[10];
-            sprintf(msgText, "%d", n);
-            size_t msgSize = sizeof(msgText);
-            write(socketServerFileDescriptor, msgText, msgSize);
-            char resultBuffer[30];
-            int readedBytes = read(socketServerFileDescriptor, &resultBuffer, sizeof(resultBuffer));
-            printf("Factorial de %hd es %s\n", n, resultBuffer);
-        }
-    } while(!connectionClosed); */
+    for(int i = 0; i < 10; i++){
+        short sensorRead = (short) (rand() % 256);
+        write(socketServerFileDescriptor, &sensorRead, sizeof sensorRead);
+        printf("Sending a reading of to %d server", sensorRead);
+        sleep(3);
+    }
     
     // Cleaning up
     puts("Closing sockets");
