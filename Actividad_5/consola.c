@@ -4,14 +4,67 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "servidor.h"
 
 const char* SERVER_IP_ADDRESS = "127.0.0.1";
 const int TCP_PORT = 8000;
 
+struct Day{
+    short int min;
+    short int max;
+    int sum;
+    int counterData;
+};
+
+struct Sensor{
+    struct Dia* first;
+};
+
 int main(){
-    int socketServerFileDescriptor = initSocket();
+    struct Sensor* sensors = (struct Sensor*) malloc(10 * sizeof(struct Sensor));
+    int *ptr = mmap(NULL,10 * sizeof(struct Sensor), PROT_READ | PROT_WRITE,MAP_SHARED | MAP_ANONYMOUS,0,0);
+    if(ptr == MAP_FAILED){
+        printf("Mapping Failed\n");
+        return 1;
+    }
+    
+    pid_t pid;
+    pid = fork();
+
+    if(pid == 0){
+        //child's process
+        int socketServerFileDescriptor = initSocket();
+        int proceed = 1;
+        pid_t pidc;
+
+        struct sockaddr_in socketAddressInfo;
+        int socketClientFileDescriptor;
+        socklen_t addressInfoSize = sizeof(socketAddressInfo);
+        while(proceed){
+            //Establish connection with client
+            socketClientFileDescriptor = accept(socketServerFileDescriptor, (struct sockaddr *) &socketAddressInfo, &addressInfoSize);
+            if(socketClientFileDescriptor == -1){
+                close(socketServerFileDescriptor);
+                logErrorAndExit("Couldn't accept client");
+            }
+            printf("Client connected to %s:%d \n",
+                inet_ntoa(socketAddressInfo.sin_addr),
+                ntohs(socketAddressInfo.sin_port));
+            
+            pidc = fork();
+            if (pidc == 0) proceed = 0;
+        }
+        if (pidc == 0) {
+            //child's process
+            close(socketServerFileDescriptor);
+            if(socketClientFileDescriptor >= 0){
+                //falta lo de recibir la información
+
+            }
+        }
+    }
 }
 
 int initSocket(){
