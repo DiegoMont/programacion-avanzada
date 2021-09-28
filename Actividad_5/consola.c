@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <time.h>
+#include <sys/time.h>
 #include <limits.h>
 
 #include "servidor.h"
@@ -20,7 +20,7 @@ const int TCP_PORT = 8000;
 
 const int MAX_NUMBER_OF_SENSORS = 10;
 const size_t DAYS_IN_MONTH = 30;
-const clock_t SECONDS_IN_DAY = 10; //24 * 60 * 60;
+const time_t SECONDS_IN_DAY = 10; //24 * 60 * 60;
 
 struct Day{
     short int min;
@@ -30,12 +30,12 @@ struct Day{
 };
 
 struct Day* sensorsReadings;
-clock_t readingStart;
+time_t programStartTime;
 
 int main(){
     size_t bytesNeededToStoreInfo = MAX_NUMBER_OF_SENSORS * DAYS_IN_MONTH * sizeof(struct Day);
     sensorsReadings = createSharedMemory(bytesNeededToStoreInfo);
-    readingStart = getCurrentSeconds();
+    programStartTime = getCurrentSeconds();
     pid_t pid;
     pid = fork();
 
@@ -62,16 +62,18 @@ struct Day* createSharedMemory(size_t size) {
     return (struct Day*) mappedMemory;
 }
 
-clock_t getCurrentSeconds(){
-    return clock() / CLOCKS_PER_SEC;
+time_t getCurrentSeconds(){
+    struct timeval unixTimestamp;
+    gettimeofday(&unixTimestamp, NULL);
+    return unixTimestamp.tv_sec;
 }
 
 void showDailyReports(){
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         int dayIsOver;
         do {
-            clock_t currentTime = getCurrentSeconds();
-            clock_t dayEnd = readingStart + (day + 1) * SECONDS_IN_DAY;
+            time_t currentTime = getCurrentSeconds();
+            time_t dayEnd = programStartTime + (day + 1) * SECONDS_IN_DAY;
             dayIsOver = currentTime > dayEnd;
         } while(!dayIsOver);
         printf("Información del día %d:\n", day + 1);
@@ -153,8 +155,7 @@ void startListeningToConnections(){
 void openSessionWithSensor(int socketClientFileDescriptor, int sensorIndex){
     printf("Start connection with sensor %d\n",sensorIndex);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
-        printf("Estamos en el día %d\n", day + 1);
-        clock_t dayEnd = readingStart + (day + 1) * SECONDS_IN_DAY;
+        const time_t dayEnd = programStartTime + (day + 1) * SECONDS_IN_DAY;
         struct Day* sensorDailyInfo = sensorsReadings + sensorIndex * DAYS_IN_MONTH + day;
         sensorDailyInfo->min = SHRT_MAX;
         int dayIsOver = 0;
@@ -171,7 +172,7 @@ void openSessionWithSensor(int socketClientFileDescriptor, int sensorIndex){
                 sensorDailyInfo->sum += buffer;
                 sensorDailyInfo->counterData++;
             }
-            clock_t currentTime = getCurrentSeconds();
+            time_t currentTime = getCurrentSeconds();
             dayIsOver = currentTime > dayEnd;  
         }
     }
