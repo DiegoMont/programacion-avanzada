@@ -1,3 +1,8 @@
+/*
+  Archana Verma Rodríguez   A01335895
+  Diego Montaño Martínez    A01651308
+*/
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -72,7 +77,7 @@ void showDailyReports(){
         } while(!dayIsOver);
         printf("Información del día %d:\n", day + 1);
         for(int sensor = 0; sensor < MAX_NUMBER_OF_SENSORS; sensor++){
-            struct Day sensorDailyInfo = *(sensorsReadings + (sensor * sensorInfoBytes) + day);
+            struct Day sensorDailyInfo = *(sensorsReadings + (sensor * sensorInfoBytes) + day * sizeof(struct Day));
             double media = sensorDailyInfo.sum / (double) sensorDailyInfo.counterData;
             printf("Max: %d    Min: %d   Promedio: %lf\n",
                    sensorDailyInfo.max,
@@ -109,10 +114,11 @@ int initSocket(){
 }
 
 void openSessionWithSensor(int socketClientFileDescriptor, int counterSensors){
+    printf("Start connection with sensor %d\n",counterSensors);
     const int sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
-        struct Day* sensorDailyInfo = sensorsReadings + (counterSensors * sensorInfoBytes) + day;
+        struct Day* sensorDailyInfo = sensorsReadings + (counterSensors * sensorInfoBytes) + day * sizeof(struct Day);
         sensorDailyInfo->min = SHRT_MAX;
         int dayIsOver = 0;
         while(!dayIsOver){
@@ -155,6 +161,7 @@ void startListeningToConnections(){
             ntohs(socketAddressInfo.sin_port));
         
         counterSensors++;
+        pidc = 0;
         pidc = fork();
         if (pidc == 0) proceed = 0;
     }

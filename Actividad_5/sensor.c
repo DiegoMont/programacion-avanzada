@@ -1,3 +1,8 @@
+/*
+  Archana Verma Rodríguez   A01335895
+  Diego Montaño Martínez    A01651308
+*/
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
