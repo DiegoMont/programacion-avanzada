@@ -17,6 +17,7 @@ const char* SERVER_IP_ADDRESS = "127.0.0.1";
 const int TCP_PORT = 8000;
 
 int main() {
+    srand(time(NULL));
     // Create socket
     int socketServerFileDescriptor;
     socketServerFileDescriptor = socket(PF_INET, SOCK_STREAM, 0);
@@ -40,7 +41,6 @@ int main() {
 
     // Start sending input to server
     while(1){
-        srand(time(0));
         short sensorRead = (short) (rand() % 256);
         printf("Sending a reading of %d to server\n", sensorRead);
         write(socketServerFileDescriptor, &sensorRead, sizeof sensorRead);

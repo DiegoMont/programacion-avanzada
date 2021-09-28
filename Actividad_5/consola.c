@@ -67,7 +67,6 @@ clock_t getCurrentSeconds(){
 }
 
 void showDailyReports(){
-    const size_t sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         int dayIsOver;
         do {
@@ -77,7 +76,9 @@ void showDailyReports(){
         } while(!dayIsOver);
         printf("Información del día %d:\n", day + 1);
         for(int sensor = 0; sensor < MAX_NUMBER_OF_SENSORS; sensor++){
-            struct Day sensorDailyInfo = *(sensorsReadings + (sensor * sensorInfoBytes) + day * sizeof(struct Day));
+            struct Day sensorDailyInfo = *(sensorsReadings + (sensor * DAYS_IN_MONTH + day ));
+            if(sensorDailyInfo.counterData == 0)
+              break;
             double media = sensorDailyInfo.sum / (double) sensorDailyInfo.counterData;
             printf("Max: %d    Min: %d   Promedio: %lf\n",
                    sensorDailyInfo.max,
@@ -113,12 +114,11 @@ int initSocket(){
     return socketServerFileDescriptor;
 }
 
-void openSessionWithSensor(int socketClientFileDescriptor, int counterSensors){
-    printf("Start connection with sensor %d\n",counterSensors);
-    const int sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
+void openSessionWithSensor(int socketClientFileDescriptor, int sensorIndex){
+    printf("Start connection with sensor %d\n",sensorIndex);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
-        struct Day* sensorDailyInfo = sensorsReadings + (counterSensors * sensorInfoBytes) + day * sizeof(struct Day);
+        struct Day* sensorDailyInfo = sensorsReadings + sensorIndex * DAYS_IN_MONTH + day;
         sensorDailyInfo->min = SHRT_MAX;
         int dayIsOver = 0;
         while(!dayIsOver){
@@ -126,7 +126,7 @@ void openSessionWithSensor(int socketClientFileDescriptor, int counterSensors){
             size_t bufferSize = sizeof buffer;
             int readedBytes = read(socketClientFileDescriptor, &buffer, bufferSize);
             if( readedBytes == bufferSize){
-                printf("Receiving %d from sensor %d\n", buffer, counterSensors);
+                printf("Receiving %d from sensor %d\n", buffer, sensorIndex);
                 short maxValue = (buffer > sensorDailyInfo->max) ? buffer: sensorDailyInfo->max;
                 short minValue = (buffer < sensorDailyInfo->min) ? buffer: sensorDailyInfo->min;
                 sensorDailyInfo->max = maxValue;
