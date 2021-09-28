@@ -33,7 +33,7 @@ int main() {
            ntohs(socketAddressInfo.sin_port));
 
     // Start sending input to server
-    for(int i = 0; i < 10; i++){
+    while(1){
         short sensorRead = (short) (rand() % 256);
         write(socketServerFileDescriptor, &sensorRead, sizeof sensorRead);
         printf("Sending a reading of to %d server", sensorRead);

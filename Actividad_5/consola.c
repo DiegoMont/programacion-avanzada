@@ -70,7 +70,7 @@ void showDailyReports(){
             dayIsOver = currentTime > dayEnd;
         } while(!dayIsOver);
         printf("Información del día %d:\n", day + 1);
-        for(int sensor = 0; MAX_NUMBER_OF_SENSORS; sensor++){
+        for(int sensor = 0; sensor < MAX_NUMBER_OF_SENSORS; sensor++){
             struct Day sensorDailyInfo = *(sensorsReadings + (sensor * sensorInfoBytes) + day);
             double media = sensorDailyInfo.sum / (double) sensorDailyInfo.counterData;
             printf("Max: %d    Min: %d   Promedio: %lf\n",
@@ -107,10 +107,35 @@ int initSocket(){
     return socketServerFileDescriptor;
 }
 
+void openSessionWIthSensor(int socketClientFileDescriptor, int counterSensors){
+    const int sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
+    for(int day = 0; day < DAYS_IN_MONTH; day++){
+        clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
+        int dayIsOver = 0;
+        while(!dayIsOver){
+            short buffer;
+            size_t bufferSize = sizeof(buffer);
+            int readedBytes = read(socketClientFileDescriptor, &buffer, bufferSize);
+            if( readedBytes == 1){
+                struct Day sensorDailyInfo = *(sensorsReadings + (counterSensors * sensorInfoBytes) + day);
+                short maxValue = (buffer > sensorDailyInfo.max) ? buffer: sensorDailyInfo.max;
+                short minValue = (buffer > sensorDailyInfo.min) ? buffer: sensorDailyInfo.min;
+                sensorDailyInfo.max = maxValue;
+                sensorDailyInfo.min = minValue;
+                sensorDailyInfo.sum += buffer;
+                sensorDailyInfo.counterData++;
+            }
+            clock_t currentTime = getCurrentSeconds();
+            dayIsOver = currentTime > dayEnd;  
+        }
+    }
+}
+
 void startListeningToConnections(){
     int socketServerFileDescriptor = initSocket();
     int proceed = 1;
     pid_t pidc;
+    int counterSensors = -1;
 
     struct sockaddr_in socketAddressInfo;
     int socketClientFileDescriptor;
@@ -133,12 +158,12 @@ void startListeningToConnections(){
         //child's process
         close(socketServerFileDescriptor);
         if(socketClientFileDescriptor >= 0){
-            //falta lo de recibir la información
+            counterSensors++;
+            openSessionWIthSensor(socketClientFileDescriptor, counterSensors);
+            
         }
     }
 }
-
-void openSessionWIthSensor(){}
 
 void logErrorAndExit(const char* errorMsg){
     puts(errorMsg);
