@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <time.h>
+#include <limits.h>
 
 #include "servidor.h"
 
@@ -14,7 +15,7 @@ const int TCP_PORT = 8000;
 
 const int MAX_NUMBER_OF_SENSORS = 10;
 const size_t DAYS_IN_MONTH = 30;
-const clock_t SECONDS_IN_DAY = 24 * 60 * 60;
+const clock_t SECONDS_IN_DAY = 10; //24 * 60 * 60;
 
 struct Day{
     short int min;
@@ -111,6 +112,8 @@ void openSessionWithSensor(int socketClientFileDescriptor, int counterSensors){
     const int sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
+        struct Day* sensorDailyInfo = sensorsReadings + (counterSensors * sensorInfoBytes) + day;
+        sensorDailyInfo->min = SHRT_MAX;
         int dayIsOver = 0;
         while(!dayIsOver){
             short buffer;
@@ -118,13 +121,12 @@ void openSessionWithSensor(int socketClientFileDescriptor, int counterSensors){
             int readedBytes = read(socketClientFileDescriptor, &buffer, bufferSize);
             if( readedBytes == bufferSize){
                 printf("Receiving %d from sensor %d\n", buffer, counterSensors);
-                struct Day sensorDailyInfo = *(sensorsReadings + (counterSensors * sensorInfoBytes) + day);
-                short maxValue = (buffer > sensorDailyInfo.max) ? buffer: sensorDailyInfo.max;
-                short minValue = (buffer < sensorDailyInfo.min) ? buffer: sensorDailyInfo.min;
-                sensorDailyInfo.max = maxValue;
-                sensorDailyInfo.min = minValue;
-                sensorDailyInfo.sum += buffer;
-                sensorDailyInfo.counterData++;
+                short maxValue = (buffer > sensorDailyInfo->max) ? buffer: sensorDailyInfo->max;
+                short minValue = (buffer < sensorDailyInfo->min) ? buffer: sensorDailyInfo->min;
+                sensorDailyInfo->max = maxValue;
+                sensorDailyInfo->min = minValue;
+                sensorDailyInfo->sum += buffer;
+                sensorDailyInfo->counterData++;
             }
             clock_t currentTime = getCurrentSeconds();
             dayIsOver = currentTime > dayEnd;  
