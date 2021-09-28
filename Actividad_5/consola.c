@@ -82,11 +82,13 @@ void showDailyReports(){
             if(sensorDailyInfo.counterData == 0)
               break;
             double media = sensorDailyInfo.sum / (double) sensorDailyInfo.counterData;
-            printf("Max: %d    Min: %d   Promedio: %lf\n",
+            printf("Sensor %d [Max: %d    Min: %d   Promedio: %lf]\n",
+                   sensor,
                    sensorDailyInfo.max,
                    sensorDailyInfo.min,
                    media);
         }
+        puts("");
     }
 }
 
