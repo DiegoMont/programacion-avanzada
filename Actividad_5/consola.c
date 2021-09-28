@@ -71,7 +71,7 @@ void showDailyReports(){
         int dayIsOver;
         do {
             clock_t currentTime = getCurrentSeconds();
-            clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
+            clock_t dayEnd = readingStart + (day + 1) * SECONDS_IN_DAY;
             dayIsOver = currentTime > dayEnd;
         } while(!dayIsOver);
         printf("Información del día %d:\n", day + 1);
@@ -114,31 +114,6 @@ int initSocket(){
     return socketServerFileDescriptor;
 }
 
-void openSessionWithSensor(int socketClientFileDescriptor, int sensorIndex){
-    printf("Start connection with sensor %d\n",sensorIndex);
-    for(int day = 0; day < DAYS_IN_MONTH; day++){
-        clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
-        struct Day* sensorDailyInfo = sensorsReadings + sensorIndex * DAYS_IN_MONTH + day;
-        sensorDailyInfo->min = SHRT_MAX;
-        int dayIsOver = 0;
-        while(!dayIsOver){
-            short buffer;
-            size_t bufferSize = sizeof buffer;
-            int readedBytes = read(socketClientFileDescriptor, &buffer, bufferSize);
-            if( readedBytes == bufferSize){
-                printf("Receiving %d from sensor %d\n", buffer, sensorIndex);
-                short maxValue = (buffer > sensorDailyInfo->max) ? buffer: sensorDailyInfo->max;
-                short minValue = (buffer < sensorDailyInfo->min) ? buffer: sensorDailyInfo->min;
-                sensorDailyInfo->max = maxValue;
-                sensorDailyInfo->min = minValue;
-                sensorDailyInfo->sum += buffer;
-                sensorDailyInfo->counterData++;
-            }
-            clock_t currentTime = getCurrentSeconds();
-            dayIsOver = currentTime > dayEnd;  
-        }
-    }
-}
 
 void startListeningToConnections(){
     int socketServerFileDescriptor = initSocket();
@@ -171,6 +146,33 @@ void startListeningToConnections(){
         if(socketClientFileDescriptor >= 0){
             openSessionWithSensor(socketClientFileDescriptor, counterSensors);
             
+        }
+    }
+}
+
+void openSessionWithSensor(int socketClientFileDescriptor, int sensorIndex){
+    printf("Start connection with sensor %d\n",sensorIndex);
+    for(int day = 0; day < DAYS_IN_MONTH; day++){
+        printf("Estamos en el día %d\n", day + 1);
+        clock_t dayEnd = readingStart + (day + 1) * SECONDS_IN_DAY;
+        struct Day* sensorDailyInfo = sensorsReadings + sensorIndex * DAYS_IN_MONTH + day;
+        sensorDailyInfo->min = SHRT_MAX;
+        int dayIsOver = 0;
+        while(!dayIsOver){
+            short buffer;
+            size_t bufferSize = sizeof buffer;
+            int readedBytes = read(socketClientFileDescriptor, &buffer, bufferSize);
+            if( readedBytes == bufferSize){
+                printf("Receiving %d from sensor %d\n", buffer, sensorIndex);
+                short maxValue = (buffer > sensorDailyInfo->max) ? buffer: sensorDailyInfo->max;
+                short minValue = (buffer < sensorDailyInfo->min) ? buffer: sensorDailyInfo->min;
+                sensorDailyInfo->max = maxValue;
+                sensorDailyInfo->min = minValue;
+                sensorDailyInfo->sum += buffer;
+                sensorDailyInfo->counterData++;
+            }
+            clock_t currentTime = getCurrentSeconds();
+            dayIsOver = currentTime > dayEnd;  
         }
     }
 }
