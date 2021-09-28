@@ -61,7 +61,7 @@ clock_t getCurrentSeconds(){
 }
 
 void showDailyReports(){
-    const sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
+    const size_t sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         int dayIsOver;
         do {
@@ -107,19 +107,20 @@ int initSocket(){
     return socketServerFileDescriptor;
 }
 
-void openSessionWIthSensor(int socketClientFileDescriptor, int counterSensors){
+void openSessionWithSensor(int socketClientFileDescriptor, int counterSensors){
     const int sensorInfoBytes = DAYS_IN_MONTH * sizeof(struct Day);
     for(int day = 0; day < DAYS_IN_MONTH; day++){
         clock_t dayEnd = day * SECONDS_IN_DAY + SECONDS_IN_DAY;
         int dayIsOver = 0;
         while(!dayIsOver){
             short buffer;
-            size_t bufferSize = sizeof(buffer);
+            size_t bufferSize = sizeof buffer;
             int readedBytes = read(socketClientFileDescriptor, &buffer, bufferSize);
-            if( readedBytes == 1){
+            if( readedBytes == bufferSize){
+                printf("Receiving %d from sensor %d\n", buffer, counterSensors);
                 struct Day sensorDailyInfo = *(sensorsReadings + (counterSensors * sensorInfoBytes) + day);
                 short maxValue = (buffer > sensorDailyInfo.max) ? buffer: sensorDailyInfo.max;
-                short minValue = (buffer > sensorDailyInfo.min) ? buffer: sensorDailyInfo.min;
+                short minValue = (buffer < sensorDailyInfo.min) ? buffer: sensorDailyInfo.min;
                 sensorDailyInfo.max = maxValue;
                 sensorDailyInfo.min = minValue;
                 sensorDailyInfo.sum += buffer;
@@ -151,6 +152,7 @@ void startListeningToConnections(){
             inet_ntoa(socketAddressInfo.sin_addr),
             ntohs(socketAddressInfo.sin_port));
         
+        counterSensors++;
         pidc = fork();
         if (pidc == 0) proceed = 0;
     }
@@ -158,8 +160,7 @@ void startListeningToConnections(){
         //child's process
         close(socketServerFileDescriptor);
         if(socketClientFileDescriptor >= 0){
-            counterSensors++;
-            openSessionWIthSensor(socketClientFileDescriptor, counterSensors);
+            openSessionWithSensor(socketClientFileDescriptor, counterSensors);
             
         }
     }

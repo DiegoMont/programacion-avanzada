@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 void logErrorAndExit(const char* errorMsg);
@@ -34,9 +35,10 @@ int main() {
 
     // Start sending input to server
     while(1){
+        srand(time(0));
         short sensorRead = (short) (rand() % 256);
+        printf("Sending a reading of %d to server\n", sensorRead);
         write(socketServerFileDescriptor, &sensorRead, sizeof sensorRead);
-        printf("Sending a reading of to %d server", sensorRead);
         sleep(3);
     }
     
