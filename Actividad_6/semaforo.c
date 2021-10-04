@@ -13,12 +13,11 @@ const int TCP_PORT = 8000;
 const int NUMBER_OF_TRAFFIC_LIGHTS = 4;
 const unsigned int TRAFFIC_LIGHT_DURATION = 2;
 
-pid_t* trafficLightPids;
+struct Semaforo* trafficLights;
 size_t trafficLightID;
-enum EstadoSemaforo status;
 
 int main(){
-    trafficLightPids = createSharedMemory(NUMBER_OF_TRAFFIC_LIGHTS);
+    trafficLights = createSharedMemory(NUMBER_OF_TRAFFIC_LIGHTS);
     signal(SIGALRM, alarmHandler);
     signal(SIGUSR1, SIGUSR1Handler);
     for(trafficLightID = 1; trafficLightID <= NUMBER_OF_TRAFFIC_LIGHTS; trafficLightID++){
@@ -30,25 +29,28 @@ int main(){
             sleep(1);
             beATrafficLight();
             break;
-        } else{
-            *(trafficLightPids + (trafficLightID-1)) = pid;
+        } else {
+            struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
+            trafficLight->estadoAnterior = VERDE;
+            trafficLight->estado = ROJO;
+            trafficLight->pid = pid;
         }
     }
-    kill(*trafficLightPids, SIGUSR1);
+    kill(getTrafficLight(1)->pid, SIGUSR1);
     while(1)
         sleep(1);
 }
 
-pid_t* createSharedMemory(size_t numberOfElements) {
+struct Semaforo* createSharedMemory(size_t numberOfElements) {
     int protection = PROT_READ | PROT_WRITE;
     int visibility = MAP_SHARED | MAP_ANONYMOUS;
-    const size_t size = numberOfElements * sizeof(pid_t);
+    const size_t size = numberOfElements * sizeof(struct Semaforo);
     void* mappedMemory = mmap(NULL, size, protection, visibility, 0, 0);
     if(mappedMemory == MAP_FAILED){
         printf("Mapping Failed\n");
         exit(1);
     }
-    return (pid_t*) mappedMemory;
+    return (struct Semaforo*) mappedMemory;
 }
 
 void alarmHandler(int s){
@@ -57,13 +59,14 @@ void alarmHandler(int s){
 }
 
 void SIGUSR1Handler(int s){
-    if(status == ROJO)
-      status = VERDE;
-    else if(status == VERDE)
-      status = ROJO;
+    struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
+    if(trafficLight->estado == ROJO)
+      trafficLight->estado = VERDE;
+    else if(trafficLight->estado == VERDE)
+      trafficLight->estado = ROJO;
     printf("El semáforo %lu está en %s\n",
            trafficLightID,
-           estadoToString(status));
+           estadoToString(trafficLight->estado));
     alarm(TRAFFIC_LIGHT_DURATION);
 }
 
@@ -74,7 +77,6 @@ void logErrorAndExit(const char* errorMsg){
 }
 
 void beATrafficLight(){
-    status = ROJO;
     printf("Semáforo %lu iniciado con vecino PID: %i\n",
            trafficLightID,
            getNextTrafficLightPID());
@@ -82,8 +84,14 @@ void beATrafficLight(){
         sleep(1);
 }
 
+struct Semaforo* getTrafficLight(size_t id){
+    const size_t index = id - 1;
+    struct Semaforo* trafficLight = trafficLights + index;
+    return trafficLight;
+}
+
 pid_t getNextTrafficLightPID(){
-    size_t nextTrafficLightID = trafficLightID < NUMBER_OF_TRAFFIC_LIGHTS ? trafficLightID: 0;
-    pid_t nextPID = *(trafficLightPids + nextTrafficLightID);
+    size_t nextTrafficLightID = trafficLightID == NUMBER_OF_TRAFFIC_LIGHTS ? 1: trafficLightID + 1;
+    pid_t nextPID = getTrafficLight(nextTrafficLightID)->pid;
     return nextPID;
 }
