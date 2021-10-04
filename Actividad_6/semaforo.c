@@ -1,22 +1,42 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include "semaforo.h"
+#include "EstadoSemaforo.c"
 
 const char* SERVER_IP_ADDRESS = "127.0.0.1";
 const int TCP_PORT = 8000;
 
 const int NUMBER_OF_TRAFFIC_LIGHTS = 4;
+const unsigned int TRAFFIC_LIGHT_DURATION = 2;
 
-pid_t* traffic_light_pids;
+pid_t* trafficLightPids;
+size_t trafficLightID;
+enum EstadoSemaforo status;
 
 int main(){
-    traffic_light_pids = createSharedMemory(NUMBER_OF_TRAFFIC_LIGHTS);
-    
-    // Cleaning up
-    munmap(traffic_light_pids, NUMBER_OF_TRAFFIC_LIGHTS * sizeof(pid_t));
+    trafficLightPids = createSharedMemory(NUMBER_OF_TRAFFIC_LIGHTS);
+    signal(SIGALRM, alarmHandler);
+    signal(SIGUSR1, SIGUSR1Handler);
+    for(trafficLightID = 1; trafficLightID <= NUMBER_OF_TRAFFIC_LIGHTS; trafficLightID++){
+        pid_t pid;
+        pid = fork();
+        if(pid == -1)
+            logErrorAndExit("Couldn't create process");
+        else if(pid == 0){
+            sleep(1);
+            beATrafficLight();
+            break;
+        } else{
+            *(trafficLightPids + (trafficLightID-1)) = pid;
+        }
+    }
+    kill(*trafficLightPids, SIGUSR1);
+    while(1)
+        sleep(1);
 }
 
 pid_t* createSharedMemory(size_t numberOfElements) {
@@ -29,4 +49,41 @@ pid_t* createSharedMemory(size_t numberOfElements) {
         exit(1);
     }
     return (pid_t*) mappedMemory;
+}
+
+void alarmHandler(int s){
+    pid_t nextTrafficLightPID = getNextTrafficLightPID();
+    kill(nextTrafficLightPID, SIGUSR1);
+}
+
+void SIGUSR1Handler(int s){
+    if(status == ROJO)
+      status = VERDE;
+    else if(status == VERDE)
+      status = ROJO;
+    printf("El semáforo %lu está en %s\n",
+           trafficLightID,
+           estadoToString(status));
+    alarm(TRAFFIC_LIGHT_DURATION);
+}
+
+void logErrorAndExit(const char* errorMsg){
+    puts(errorMsg);
+    puts("Terminating program");
+    exit(1);
+}
+
+void beATrafficLight(){
+    status = ROJO;
+    printf("Semáforo %lu iniciado con vecino PID: %i\n",
+           trafficLightID,
+           getNextTrafficLightPID());
+    while(1)
+        sleep(1);
+}
+
+pid_t getNextTrafficLightPID(){
+    size_t nextTrafficLightID = trafficLightID < NUMBER_OF_TRAFFIC_LIGHTS ? trafficLightID: 0;
+    pid_t nextPID = *(trafficLightPids + nextTrafficLightID);
+    return nextPID;
 }
