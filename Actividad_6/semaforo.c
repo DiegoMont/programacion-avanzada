@@ -66,9 +66,7 @@ void SIGUSR1Handler(int s){
     setTrafficLightsToRojo();
     struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
     trafficLight->estado = VERDE;
-    printf("El semáforo %lu está en %s\n",
-           trafficLightID,
-           estadoToString(trafficLight->estado));
+    sendStatusToConsole();
     alarm(TRAFFIC_LIGHT_DURATION);
 }
 
@@ -130,4 +128,15 @@ int connectToConsole(){
            inet_ntoa(socketAddressInfo.sin_addr),
            ntohs(socketAddressInfo.sin_port));
     return socketServerFileDescriptor;
+}
+
+void sendStatusToConsole(){
+    struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
+    char msgText[30];
+    sprintf(msgText, "El semáforo %lu está en %s\n",
+           trafficLightID,
+           estadoToString(trafficLight->estado));
+    size_t msgSize = sizeof(msgText);
+    printf("Logging message to console: \n%s\n", msgText);
+    //write(trafficLight->serverFileDescriptor, msgText, msgSize);
 }

@@ -5,5 +5,6 @@ struct Semaforo* createSharedMemory(size_t numberOfElements);
 pid_t getNextTrafficLightPID();
 struct Semaforo* getTrafficLight(size_t id);
 void logErrorAndExit(const char* errorMsg);
+void sendStatusToConsole();
 void setTrafficLightsToRojo();
 void SIGUSR1Handler(int s);
