@@ -10,7 +10,6 @@
 const char* SERVER_IP_ADDRESS = "127.0.0.1";
 const int TCP_PORT = 8000;
 
-const int NUMBER_OF_TRAFFIC_LIGHTS = 4;
 const unsigned int TRAFFIC_LIGHT_DURATION = 2;
 
 struct Semaforo* trafficLights;
@@ -36,6 +35,7 @@ int main(){
             trafficLight->pid = pid;
         }
     }
+    sleep(2);
     kill(getTrafficLight(1)->pid, SIGUSR1);
     while(1)
         sleep(1);

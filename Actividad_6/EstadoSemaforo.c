@@ -8,6 +8,8 @@ struct Semaforo {
     pid_t pid;
 };
 
+const int NUMBER_OF_TRAFFIC_LIGHTS = 4;
+
 char* estadoToString(enum EstadoSemaforo estado){
     if(estado == ROJO)
         return "rojo";
