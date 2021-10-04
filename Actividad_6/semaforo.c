@@ -59,11 +59,9 @@ void alarmHandler(int s){
 }
 
 void SIGUSR1Handler(int s){
+    setTrafficLightsToRojo();
     struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
-    if(trafficLight->estado == ROJO)
-      trafficLight->estado = VERDE;
-    else if(trafficLight->estado == VERDE)
-      trafficLight->estado = ROJO;
+    trafficLight->estado = VERDE;
     printf("El semáforo %lu está en %s\n",
            trafficLightID,
            estadoToString(trafficLight->estado));
@@ -94,4 +92,12 @@ pid_t getNextTrafficLightPID(){
     size_t nextTrafficLightID = trafficLightID == NUMBER_OF_TRAFFIC_LIGHTS ? 1: trafficLightID + 1;
     pid_t nextPID = getTrafficLight(nextTrafficLightID)->pid;
     return nextPID;
+}
+
+void setTrafficLightsToRojo(){
+    for(int i = 0 ; i < NUMBER_OF_TRAFFIC_LIGHTS; i++){
+        struct Semaforo* aux = trafficLights + i;
+        aux->estadoAnterior = aux->estado;
+        aux->estado = ROJO;
+    }
 }
