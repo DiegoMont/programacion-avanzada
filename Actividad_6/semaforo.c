@@ -1,7 +1,10 @@
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include "semaforo.h"
@@ -33,6 +36,7 @@ int main(){
             trafficLight->estadoAnterior = VERDE;
             trafficLight->estado = ROJO;
             trafficLight->pid = pid;
+            trafficLight->serverFileDescriptor = -1;
         }
     }
     sleep(2);
@@ -78,6 +82,8 @@ void beATrafficLight(){
     printf("Semáforo %lu iniciado con vecino PID: %i\n",
            trafficLightID,
            getNextTrafficLightPID());
+    int serverFileDescriptor = connectToConsole();
+    getTrafficLight(trafficLightID)->serverFileDescriptor = serverFileDescriptor;
     while(1)
         sleep(1);
 }
@@ -100,4 +106,28 @@ void setTrafficLightsToRojo(){
         aux->estadoAnterior = aux->estado;
         aux->estado = ROJO;
     }
+}
+
+int connectToConsole(){
+    // Create socket
+    int socketServerFileDescriptor;
+    socketServerFileDescriptor = socket(PF_INET, SOCK_STREAM, 0);
+    if(socketServerFileDescriptor == -1)
+        logErrorAndExit("Couldn't create socket");
+
+    // Connect to server
+    struct sockaddr_in socketAddressInfo;
+    socketAddressInfo.sin_port = htons(TCP_PORT);
+    socketAddressInfo.sin_family = AF_INET;
+    inet_aton(SERVER_IP_ADDRESS, &socketAddressInfo.sin_addr);
+    socklen_t addressInfoSize = sizeof(socketAddressInfo);
+    int connectionError = connect(socketServerFileDescriptor, (struct sockaddr *) &socketAddressInfo, addressInfoSize);
+    if(connectionError == -1){
+        close(socketServerFileDescriptor);
+        logErrorAndExit("Couldn't connect to server");
+    }
+    printf("Conectado a %s:%d \n",
+           inet_ntoa(socketAddressInfo.sin_addr),
+           ntohs(socketAddressInfo.sin_port));
+    return socketServerFileDescriptor;
 }
