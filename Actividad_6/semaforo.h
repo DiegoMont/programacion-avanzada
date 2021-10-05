@@ -8,3 +8,4 @@ void logErrorAndExit(const char* errorMsg);
 void sendStatusToConsole();
 void setTrafficLightsToRojo();
 void SIGUSR1Handler(int s);
+void toggleSpecialState(struct Semaforo* trafficLight, int specialState);

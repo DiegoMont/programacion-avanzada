@@ -87,18 +87,7 @@ void beATrafficLight(){
         char buffer[14];
         int readedBytes = read(thisTrafficLight->serverFileDescriptor, buffer, sizeof buffer);
         if(readedBytes > 0){
-            puts(buffer);
-            thisTrafficLight->estadoAnterior = thisTrafficLight->estado;
-            if(thisTrafficLight->estado == ROJO_ESTATICO){
-                signal(SIGUSR1, SIGUSR1Handler);
-                sleep(1);
-                thisTrafficLight->estado = thisTrafficLight->estadoAnterior;
-            } else {
-                signal(SIGUSR1, SIG_IGN);
-                sleep(1);
-                thisTrafficLight->estado == ROJO_ESTATICO;
-            }
-            sendStatusToConsole();
+            toggleSpecialState(thisTrafficLight, ROJO_ESTATICO);
         }
         sleep(1);
     }
@@ -148,10 +137,26 @@ int connectToConsole(){
     return socketServerFileDescriptor;
 }
 
+void toggleSpecialState(struct Semaforo* trafficLight, int specialState){
+    trafficLight->estadoAnterior = trafficLight->estado == VERDE ? VERDE: ROJO;
+    if(trafficLight->estado == specialState){
+        signal(SIGUSR1, SIGUSR1Handler);
+        trafficLight->estado = trafficLight->estadoAnterior;
+        if(trafficLight->estado == VERDE){
+            puts("Activando alarm");
+            alarm(TRAFFIC_LIGHT_DURATION);
+        }
+    } else {
+        signal(SIGUSR1, SIG_IGN);
+        trafficLight->estado = specialState;
+    }
+    sendStatusToConsole();
+}
+
 void sendStatusToConsole(){
     struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
     char msgText[40];
-    sprintf(msgText, "El semáforo %lu está en %s\n",
+    sprintf(msgText, "\aEl semáforo %lu está en %s\n",
            trafficLightID,
            estadoToString(trafficLight->estado));
     size_t msgSize = sizeof(msgText);
