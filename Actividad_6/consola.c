@@ -1,7 +1,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -11,12 +13,14 @@
 const char* SERVER_IP_ADDRESS = "127.0.0.1";
 const int TCP_PORT = 8000;
 
+int trafficLightsFileDescriptors[NUMBER_OF_TRAFFIC_LIGHTS];
+
 int main(){
     int socketServerFileDescriptor = initSocket();
-    int trafficLightsFileDescriptors[NUMBER_OF_TRAFFIC_LIGHTS];
     establishConnectionWithTrafficLights(socketServerFileDescriptor, trafficLightsFileDescriptors);
+    signal(SIGTSTP, handler);
     while(1){
-        char buffer[30];
+        char buffer[40];
         for(int trafficLight = 0; trafficLight < NUMBER_OF_TRAFFIC_LIGHTS; trafficLight++){
             int readedBytes = read(*(trafficLightsFileDescriptors + trafficLight), buffer, sizeof buffer);
             if (readedBytes > 0)
@@ -66,6 +70,17 @@ void establishConnectionWithTrafficLights(int serverFileDescriptor, int* clientF
         *(clientFileDescriptors + i) = clientFileDescriptor;
     }
     puts("Connection with traffic lights established");
+}
+
+void handler(int s){
+    for(int trafficLight = 0; trafficLight < NUMBER_OF_TRAFFIC_LIGHTS; trafficLight++){
+        char command[14];
+        if(s == SIGTSTP)
+            strcpy(command, "ROJO");
+        else
+            strcpy(command, "INTERMITENTE");
+        write(*(trafficLightsFileDescriptors + trafficLight), command, sizeof command);
+    }
 }
 
 void logErrorAndExit(const char* errorMsg){

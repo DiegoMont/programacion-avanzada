@@ -77,13 +77,31 @@ void logErrorAndExit(const char* errorMsg){
 }
 
 void beATrafficLight(){
+    struct Semaforo* thisTrafficLight = getTrafficLight(trafficLightID);
     printf("Semáforo %lu iniciado con vecino PID: %i\n",
            trafficLightID,
            getNextTrafficLightPID());
     int serverFileDescriptor = connectToConsole();
-    getTrafficLight(trafficLightID)->serverFileDescriptor = serverFileDescriptor;
-    while(1)
+    thisTrafficLight->serverFileDescriptor = serverFileDescriptor;
+    while(1){
+        char buffer[14];
+        int readedBytes = read(thisTrafficLight->serverFileDescriptor, buffer, sizeof buffer);
+        if(readedBytes > 0){
+            puts(buffer);
+            thisTrafficLight->estadoAnterior = thisTrafficLight->estado;
+            if(thisTrafficLight->estado == ROJO_ESTATICO){
+                signal(SIGUSR1, SIGUSR1Handler);
+                sleep(1);
+                thisTrafficLight->estado = thisTrafficLight->estadoAnterior;
+            } else {
+                signal(SIGUSR1, SIG_IGN);
+                sleep(1);
+                thisTrafficLight->estado == ROJO_ESTATICO;
+            }
+            sendStatusToConsole();
+        }
         sleep(1);
+    }
 }
 
 struct Semaforo* getTrafficLight(size_t id){
@@ -132,7 +150,7 @@ int connectToConsole(){
 
 void sendStatusToConsole(){
     struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
-    char msgText[30];
+    char msgText[40];
     sprintf(msgText, "El semáforo %lu está en %s\n",
            trafficLightID,
            estadoToString(trafficLight->estado));

@@ -1,5 +1,7 @@
+#define NUMBER_OF_TRAFFIC_LIGHTS 2
+
 enum EstadoSemaforo {
-    ROJO, VERDE, INTERMITENTE
+    ROJO, VERDE, INTERMITENTE, ROJO_ESTATICO
 };
 
 struct Semaforo {
@@ -9,12 +11,12 @@ struct Semaforo {
     int serverFileDescriptor;
 };
 
-const int NUMBER_OF_TRAFFIC_LIGHTS = 2;
-
 char* estadoToString(enum EstadoSemaforo estado){
     if(estado == ROJO)
         return "rojo";
     if(estado == VERDE)
         return "verde";
-    return "intermitente";
+    if(estado == INTERMITENTE);
+        return "intermitente";
+    return "rojo estático";
 }
