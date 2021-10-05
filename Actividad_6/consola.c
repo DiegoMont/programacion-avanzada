@@ -15,6 +15,14 @@ int main(){
     int socketServerFileDescriptor = initSocket();
     int trafficLightsFileDescriptors[NUMBER_OF_TRAFFIC_LIGHTS];
     establishConnectionWithTrafficLights(socketServerFileDescriptor, trafficLightsFileDescriptors);
+    while(1){
+        char buffer[30];
+        for(int trafficLight = 0; trafficLight < NUMBER_OF_TRAFFIC_LIGHTS; trafficLight++){
+            int readedBytes = read(*(trafficLightsFileDescriptors + trafficLight), buffer, sizeof buffer);
+            if (readedBytes > 0)
+                puts(buffer);
+        }
+    }
 }
 
 int initSocket(){

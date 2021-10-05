@@ -137,6 +137,6 @@ void sendStatusToConsole(){
            trafficLightID,
            estadoToString(trafficLight->estado));
     size_t msgSize = sizeof(msgText);
-    printf("Logging message to console: \n%s\n", msgText);
-    //write(trafficLight->serverFileDescriptor, msgText, msgSize);
+    printf("%s", msgText);
+    write(trafficLight->serverFileDescriptor, msgText, msgSize);
 }
