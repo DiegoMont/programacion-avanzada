@@ -18,8 +18,7 @@ int trafficLightsFileDescriptors[NUMBER_OF_TRAFFIC_LIGHTS];
 int main(){
     int socketServerFileDescriptor = initSocket();
     establishConnectionWithTrafficLights(socketServerFileDescriptor, trafficLightsFileDescriptors);
-    signal(SIGTSTP, handler);
-    signal(SIGINT, handler);
+    configureSignals();
     while(1){
         char buffer[40];
         for(int trafficLight = 0; trafficLight < NUMBER_OF_TRAFFIC_LIGHTS; trafficLight++){
@@ -28,6 +27,16 @@ int main(){
                 puts(buffer);
         }
     }
+}
+
+void configureSignals(){
+    sigset_t conjunto;
+    sigfillset(&conjunto);
+    sigdelset(&conjunto,SIGTSTP);
+    sigdelset(&conjunto,SIGINT);
+    sigprocmask(SIG_BLOCK, &conjunto, NULL);
+    signal(SIGTSTP, handler);
+    signal(SIGINT, handler);
 }
 
 int initSocket(){

@@ -13,15 +13,14 @@
 const char* SERVER_IP_ADDRESS = "127.0.0.1";
 const int TCP_PORT = 8000;
 
-const unsigned int TRAFFIC_LIGHT_DURATION = 2;
+const unsigned int TRAFFIC_LIGHT_DURATION = 30;
 
 struct Semaforo* trafficLights;
 size_t trafficLightID;
 
 int main(){
     trafficLights = createSharedMemory(NUMBER_OF_TRAFFIC_LIGHTS);
-    signal(SIGALRM, alarmHandler);
-    signal(SIGUSR1, SIGUSR1Handler);
+    configureSignals();
     for(trafficLightID = 1; trafficLightID <= NUMBER_OF_TRAFFIC_LIGHTS; trafficLightID++){
         pid_t pid;
         pid = fork();
@@ -55,6 +54,16 @@ struct Semaforo* createSharedMemory(size_t numberOfElements) {
         exit(1);
     }
     return (struct Semaforo*) mappedMemory;
+}
+
+void configureSignals(){
+    sigset_t conjunto;
+    sigfillset(&conjunto);
+    sigdelset(&conjunto,SIGUSR1);
+    sigdelset(&conjunto,SIGALRM);
+    sigprocmask(SIG_BLOCK, &conjunto, NULL);
+    signal(SIGALRM, alarmHandler);
+    signal(SIGUSR1, SIGUSR1Handler);
 }
 
 void alarmHandler(int s){

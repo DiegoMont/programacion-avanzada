@@ -1,5 +1,6 @@
 void alarmHandler(int s);
 void beATrafficLight();
+void configureSignals();
 int connectToConsole();
 struct Semaforo* createSharedMemory(size_t numberOfElements);
 pid_t getNextTrafficLightPID();
