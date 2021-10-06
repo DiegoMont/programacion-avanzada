@@ -16,7 +16,7 @@ char* estadoToString(enum EstadoSemaforo estado){
         return "rojo";
     if(estado == VERDE)
         return "verde";
-    if(estado == INTERMITENTE);
+    if(estado == INTERMITENTE)
         return "intermitente";
     return "rojo estático";
 }
