@@ -19,6 +19,7 @@ int main(){
     int socketServerFileDescriptor = initSocket();
     establishConnectionWithTrafficLights(socketServerFileDescriptor, trafficLightsFileDescriptors);
     signal(SIGTSTP, handler);
+    signal(SIGINT, handler);
     while(1){
         char buffer[40];
         for(int trafficLight = 0; trafficLight < NUMBER_OF_TRAFFIC_LIGHTS; trafficLight++){

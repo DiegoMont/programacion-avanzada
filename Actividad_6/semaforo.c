@@ -86,9 +86,10 @@ void beATrafficLight(){
     while(1){
         char buffer[14];
         int readedBytes = read(thisTrafficLight->serverFileDescriptor, buffer, sizeof buffer);
-        if(readedBytes > 0){
+        if(*buffer == 'I')
+            toggleSpecialState(thisTrafficLight, INTERMITENTE);
+        else if(*buffer == 'R')
             toggleSpecialState(thisTrafficLight, ROJO_ESTATICO);
-        }
         sleep(1);
     }
 }
@@ -156,7 +157,7 @@ void toggleSpecialState(struct Semaforo* trafficLight, int specialState){
 void sendStatusToConsole(){
     struct Semaforo* trafficLight = getTrafficLight(trafficLightID);
     char msgText[40];
-    sprintf(msgText, "El semáforo %lu está en %s\n",
+    sprintf(msgText, "\aEl semáforo %lu está en %s\n",
            trafficLightID,
            estadoToString(trafficLight->estado));
     size_t msgSize = sizeof(msgText);
