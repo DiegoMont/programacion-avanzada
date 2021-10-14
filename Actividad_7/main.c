@@ -101,33 +101,34 @@ void asignarPesoYListaRobots(struct Robot* arregloRobots){
 
 void * compraSeccion(void * args){
     struct Robot* tempRobot = (struct Robot*) args;
-    printf("(P) Inicia robot %d\n", tempRobot->id);
-    while((arregloSecciones->pesoMax - arregloSecciones->pesoActual + tempRobot->pesoActual) > 0 && *tempRobot->lista > 0){
+    
+    while(arregloSecciones->pesoMax >= (arregloSecciones->pesoActual + tempRobot->pesoActual) ){
+        printf("(P) Entra a sección robot %d\n", tempRobot->id);
         pthread_mutex_lock(&mutex);
-        if(arregloSecciones->pesoActual < arregloSecciones->pesoMax && tempRobot->pesoActual <= (arregloSecciones->pesoMax - arregloSecciones->pesoActual )){
+        if(arregloSecciones->pesoMax >= (arregloSecciones->pesoActual + tempRobot->pesoActual)&& *tempRobot->lista > 0){
             arregloSecciones->pesoActual += tempRobot->pesoActual;
             printf("+++ Inicia compra (Robot: %d  Peso actual: %d Lista: %d) entró a (Sección: %d Peso actual: %d Peso máximo: %d) \n",
             tempRobot->id,tempRobot->pesoActual,*(tempRobot->lista), arregloSecciones->id,arregloSecciones->pesoActual, arregloSecciones->pesoMax);
             int final = *tempRobot->lista;
             for(int aux = 0; aux < final; aux++){
                 if((arregloSecciones->pesoMax - arregloSecciones->pesoActual) == 0){
-                    printf("++++++++Robot: %d no es posible comprar producto, peso actual de sección %d está  en su capacidad máxima\n", 
+                    printf("+++++ Robot: %d no es posible comprar producto, peso actual de sección %d está  en su capacidad máxima\n", 
                     tempRobot->id, arregloSecciones->id);
                     *tempRobot->lista -= 1;
                     continue;
                 }   
                 else{
                     int pesoProductoCompra = getRandomNumber(1, arregloSecciones->pesoMax - arregloSecciones->pesoActual);
-                    printf("++++++++ Robot: %d  Peso producto: %d\n",tempRobot->id, pesoProductoCompra);
+                    printf("+++++ Robot: %d  Peso producto: %d\n",tempRobot->id, pesoProductoCompra);
                     tempRobot->pesoActual += pesoProductoCompra;
                     *tempRobot->lista -= 1;
                     arregloSecciones->pesoActual += pesoProductoCompra;
                 } 
             }
-            printf("+++ (Robot: %d  Peso actual: %d Lista: %d  ) compró en (Sección: %d Peso actual: %d Peso máximo: %d) \n",
+            printf("+++ Termina compra(Robot: %d  Peso actual: %d Lista: %d  ) compró en (Sección: %d Peso actual: %d Peso máximo: %d) \n",
             tempRobot->id,tempRobot->pesoActual, *(tempRobot->lista), arregloSecciones->id,arregloSecciones->pesoActual, arregloSecciones->pesoMax);
 
-            if(arregloSecciones->pesoActual>=arregloSecciones->pesoMax)
+            if(arregloSecciones->pesoActual>0)
                 pthread_cond_broadcast(&consume_t);
         } else {
             printf("-------------Robot %d con Peso actual: %d se durmió (Sección:%d Peso actual:%d  Peso max:%d  )--------------\n",
@@ -146,12 +147,13 @@ void * salirSeccion(void * args){
         pthread_mutex_lock(&mutex);
         if(arregloSecciones->pesoActual > 0 && *tempRobot->lista == 0){
             arregloSecciones->pesoActual -= tempRobot->pesoActual;
-            printf("--- (Robot %d) se sale de (Sección: %d  Peso actual: %d)\n",
+            printf("(F)--- (Robot %d) se sale de (Sección: %d  Peso actual: %d)\n",
              tempRobot->id, arregloSecciones->id, arregloSecciones->pesoActual);
             *tempRobot->lista -= 1;
-            
             if(arregloSecciones->pesoActual==0)
-                pthread_cond_broadcast(&produce_t);
+               pthread_cond_broadcast(&produce_t);
+
+                
 
         }else{
                         /* La sección está vacía, se va a dormir */
