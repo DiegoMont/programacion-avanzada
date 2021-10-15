@@ -24,6 +24,7 @@ Para cada sección a la que un robot quiere entrar:
 */
 
 size_t MAX_NUMERO_SECCIONES = 5;
+size_t MAX_NUMERO_ROBOTS = 6;
 useconds_t MAX_TIEMPO_ESPERA = 3000000;
 useconds_t MIN_TIEMPO_ESPERA = 500000;
 
@@ -33,6 +34,13 @@ size_t numSecciones;
 int main(){
     srand(time(NULL));
     crearSecciones();
+    const size_t NUMERO_ROBOTS = getRandomNumber(1, MAX_NUMERO_ROBOTS);
+    pthread_t robots[NUMERO_ROBOTS];
+    pthread_t* robotsEnd = robots + NUMERO_ROBOTS;
+    for (pthread_t* robot = robots; robot < robotsEnd; robot++)
+        pthread_create(robot, NULL, (void *) activarRobot, NULL);
+    for (pthread_t* robot = robots; robot < robotsEnd; robot++)
+        pthread_join(*robot, NULL);
     // Cleaning up
     free(secciones);
 }
@@ -48,6 +56,10 @@ void crearSecciones(){
 
 int getRandomNumber(int min, int max){
     return (rand() % (max - min + 1)) + min;
+}
+
+void* activarRobot(void* args){
+    pthread_exit(NULL);
 }
 
 void iniciarSeccion(void* aux){
