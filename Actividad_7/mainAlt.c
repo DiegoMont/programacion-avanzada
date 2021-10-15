@@ -86,8 +86,7 @@ void* activarRobot(void* args){
                 printf("Entrando a seccion %d. Peso actual de: %d\n", seccionId + 1, seccion->pesoActual);
                 pthread_cond_broadcast(&variableCondicion);
                 pthread_mutex_unlock(&mutex);
-                useconds_t totalAEsperar = productosAComprar * seccion->tiempoQueTardaEnDespachar;
-                usleep(totalAEsperar);
+                esperarYRecibirProductos(productosAComprar, &pesoRobot, seccion);
             } else {
                 pthread_cond_wait(&variableCondicion, &mutex);
             }
@@ -148,6 +147,13 @@ int getProductosAComprar(size_t seccionIndx, int pesoRobot, int productosDeseado
 void apartarEspacioNecesario(void* aux, int productos){
     struct Seccion* seccion = (struct Seccion*) aux;
     seccion->pesoActual += productos * seccion->pesoDeProducto;
+}
+
+void esperarYRecibirProductos(int totalProductos, int* pesoRobot, void* aux){
+    struct Seccion* seccion = (struct Seccion*) aux;
+    *pesoRobot += totalProductos * seccion->pesoDeProducto;
+    useconds_t tiempoAEsperar = totalProductos * seccion->tiempoQueTardaEnDespachar;
+    usleep(tiempoAEsperar);
 }
 
 int min(int a, int b){

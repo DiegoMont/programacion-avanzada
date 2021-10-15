@@ -1,6 +1,7 @@
 void* activarRobot(void* args);
 void apartarEspacioNecesario(void* aux, int productos);
 void crearSecciones();
+void esperarYRecibirProductos(int totalProductos, int* pesoRobot, void* aux);
 void getLista(int* lista);
 int getProductosAComprar(size_t seccionIndx, int pesoRobot, int productosDeseados);
 int getRandomNumber(int min, int max);
