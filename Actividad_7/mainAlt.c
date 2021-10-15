@@ -10,8 +10,8 @@
 const size_t MAX_NUMERO_SECCIONES = 5;
 const size_t MAX_NUMERO_ROBOTS = 6;
 const int MAX_PRODUCTOS_POR_SECCION = 3;
-const useconds_t MAX_TIEMPO_ESPERA = 3000000;
-const useconds_t MIN_TIEMPO_ESPERA = 500000;
+const useconds_t MAX_TIEMPO_ESPERA = 1000000;
+const useconds_t MIN_TIEMPO_ESPERA = 300000;
 
 struct Seccion* secciones;
 size_t numSecciones;
