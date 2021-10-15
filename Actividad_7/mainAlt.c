@@ -23,10 +23,11 @@ Para cada sección a la que un robot quiere entrar:
     se pone en wait hasta que pueda entrar a la seccion
 */
 
-size_t MAX_NUMERO_SECCIONES = 5;
-size_t MAX_NUMERO_ROBOTS = 6;
-useconds_t MAX_TIEMPO_ESPERA = 3000000;
-useconds_t MIN_TIEMPO_ESPERA = 500000;
+const size_t MAX_NUMERO_SECCIONES = 5;
+const size_t MAX_NUMERO_ROBOTS = 6;
+const int MAX_PRODUCTOS_POR_SECCION = 5;
+const useconds_t MAX_TIEMPO_ESPERA = 3000000;
+const useconds_t MIN_TIEMPO_ESPERA = 500000;
 
 struct Seccion* secciones;
 size_t numSecciones;
@@ -59,12 +60,26 @@ int getRandomNumber(int min, int max){
 }
 
 void* activarRobot(void* args){
+    int lista[numSecciones];
+    getLista(lista);
+    int productosAComprar = 0;
+    for(size_t i = 0; i < numSecciones; i++)
+        productosAComprar += lista[i];
+    printf("Tengo que comprar %d productos\n", productosAComprar);
     pthread_exit(NULL);
 }
 
 void iniciarSeccion(void* aux){
     struct Seccion* seccion = (struct Seccion*) aux;
     seccion->pesoActual = 0;
-    seccion->pesoMaximo = getRandomNumber(2 * PESO_MAXIMO_PRODUCTO, PESO_MAXIMO_PRODUCTO * 5);
+    seccion->pesoMaximo = getRandomNumber(2 * PESO_MAXIMO_PRODUCTO, PESO_MAXIMO_PRODUCTO * MAX_PRODUCTOS_POR_SECCION);
     seccion->tiempoQueTardaEnDespachar = getRandomNumber(MIN_TIEMPO_ESPERA, MAX_TIEMPO_ESPERA);
+}
+
+void getLista(int* lista){
+    int* listaEnd = lista + numSecciones;
+    for(int* seccion = lista; seccion < listaEnd; seccion++){
+        int productosAComprar = getRandomNumber(0, MAX_PRODUCTOS_POR_SECCION);
+        *seccion = productosAComprar;
+    }
 }
