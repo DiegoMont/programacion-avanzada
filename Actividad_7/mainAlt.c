@@ -37,7 +37,7 @@ pthread_cond_t variableCondicion = PTHREAD_COND_INITIALIZER;
 int main(){
     srand(time(NULL));
     crearSecciones();
-    const size_t NUMERO_ROBOTS = 1;//getRandomNumber(1, MAX_NUMERO_ROBOTS);
+    const size_t NUMERO_ROBOTS = 2;//getRandomNumber(1, MAX_NUMERO_ROBOTS);
     pthread_t robots[NUMERO_ROBOTS];
     printf("Tenemos un total de %lu robots\n", NUMERO_ROBOTS);
     pthread_t* robotsEnd = robots + NUMERO_ROBOTS;
@@ -93,6 +93,7 @@ void* activarRobot(void* args){
             pthread_mutex_unlock(&mutex);
         }
     }
+    liberarSeccionAnterior(numSecciones, pesoRobot);
     puts("Hemos terminado el shopping");
     pthread_exit(NULL);
 }
