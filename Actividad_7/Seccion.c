@@ -1,6 +1,7 @@
 struct Seccion {
     int pesoMaximo;
     int pesoActual;
+    int pesoDeProducto;
     useconds_t tiempoQueTardaEnDespachar;
 };
 
