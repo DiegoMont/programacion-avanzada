@@ -7,22 +7,6 @@
 #include "mainAlt.h"
 #include "Seccion.c"
 
-/*
-Crear secciones
-Crear listas
-Crear hilos para cada lista, el hilo representa el robot
-Para cada sección a la que un robot quiere entrar:
-  Bloquea el peso actual de la sección
-  Si puede entrar a la sección
-    Entra y actualiza el peso actual
-    libera el peso de la sección en la que está
-    Manda un broadcast a los otros hilos
-    Desbloque el mutex
-    Espera a que le entreguen los productos
-  Si no puede entrar
-    se pone en wait hasta que pueda entrar a la seccion
-*/
-
 const size_t MAX_NUMERO_SECCIONES = 5;
 const size_t MAX_NUMERO_ROBOTS = 6;
 const int MAX_PRODUCTOS_POR_SECCION = 3;
@@ -37,7 +21,7 @@ pthread_cond_t variableCondicion = PTHREAD_COND_INITIALIZER;
 int main(){
     srand(time(NULL));
     crearSecciones();
-    const size_t NUMERO_ROBOTS = 2;//getRandomNumber(1, MAX_NUMERO_ROBOTS);
+    const size_t NUMERO_ROBOTS = getRandomNumber(1, MAX_NUMERO_ROBOTS);
     pthread_t robots[NUMERO_ROBOTS];
     printf("Tenemos un total de %lu robots\n", NUMERO_ROBOTS);
     pthread_t* robotsEnd = robots + NUMERO_ROBOTS;
