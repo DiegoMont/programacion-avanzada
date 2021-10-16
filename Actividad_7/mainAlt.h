@@ -7,5 +7,4 @@ int getProductosAComprar(size_t seccionIndx, int pesoRobot, int productosDeseado
 int getRandomNumber(int min, int max);
 void iniciarSeccion(void* aux);
 void liberarSeccionAnterior(size_t seccionALiberar, int pesoRobot);
-int min(int a, int b);
 void printProductosAComprar(int* lista);

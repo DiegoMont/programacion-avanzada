@@ -10,8 +10,8 @@
 const size_t MAX_NUMERO_SECCIONES = 5;
 const size_t MAX_NUMERO_ROBOTS = 6;
 const int MAX_PRODUCTOS_POR_SECCION = 3;
-const useconds_t MAX_TIEMPO_ESPERA = 1000000;
-const useconds_t MIN_TIEMPO_ESPERA = 300000;
+const useconds_t MAX_TIEMPO_ESPERA = 10000;
+const useconds_t MIN_TIEMPO_ESPERA = 3000;
 
 struct Seccion* secciones;
 size_t numSecciones;
@@ -115,16 +115,24 @@ void liberarSeccionAnterior(size_t seccionALiberar, int pesoRobot){
 }
 
 int getProductosAComprar(size_t seccionIndx, int pesoRobot, int productosDeseados){
-    struct Seccion* seccion = secciones + seccionIndx;
-    int pesoMaximoDelRobot = seccion->pesoMaximo;
-    struct Seccion* end = secciones + numSecciones;
-    for(; seccion < end; seccion++)
-        pesoMaximoDelRobot = min(pesoMaximoDelRobot, seccion->pesoMaximo);
+    int indxSeccionLimitante = seccionIndx;
+    int limitePesoRobot = (secciones + seccionIndx)->pesoMaximo;
+    for(int i = seccionIndx + 1; i < numSecciones; i++){
+        if((secciones + i)->pesoMaximo < limitePesoRobot){
+            limitePesoRobot = (secciones + i)->pesoMaximo;
+            indxSeccionLimitante = i;
+        }
+    }
+    struct Seccion* seccion = (struct Seccion*) (secciones + seccionIndx);
+    int pesoHipotetico;
+    if(seccionIndx == indxSeccionLimitante)
+        pesoHipotetico = seccion->pesoActual;
+    else
+        pesoHipotetico = pesoRobot;
     int productosPermitidos = 0;
-    seccion = secciones + seccionIndx;
-    while(seccion->pesoDeProducto + pesoRobot <= pesoMaximoDelRobot){
+    while(pesoHipotetico + seccion->pesoDeProducto <= limitePesoRobot && productosPermitidos < productosDeseados){
+        pesoHipotetico += seccion->pesoDeProducto;
         productosPermitidos++;
-        pesoRobot += seccion->pesoDeProducto;
     }
     return productosPermitidos;
 }
@@ -139,8 +147,4 @@ void esperarYRecibirProductos(int totalProductos, int* pesoRobot, void* aux){
     *pesoRobot += totalProductos * seccion->pesoDeProducto;
     useconds_t tiempoAEsperar = totalProductos * seccion->tiempoQueTardaEnDespachar;
     usleep(tiempoAEsperar);
-}
-
-int min(int a, int b){
-    return a < b ? a: b;
 }
