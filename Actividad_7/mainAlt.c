@@ -55,6 +55,7 @@ void* activarRobot(void* args){
     int pesoRobot = 0;
     int id = rand() % 10000;
     getLista(lista);
+    printLista(lista);
     printProductosAComprar(id, lista);
     usleep(100000);
     for(int seccionId = 0; seccionId < numSecciones; seccionId++){
@@ -101,6 +102,12 @@ void getLista(int* lista){
         int productosAComprar = getRandomNumber(0, MAX_PRODUCTOS_POR_SECCION);
         *seccion = productosAComprar;
     }
+}
+
+void printLista(int* lista){
+    for(int* seccion = lista; seccion < (lista + numSecciones); seccion++)
+       printf(" %d ", *seccion);
+    printf("\n");
 }
 
 void printProductosAComprar(int id, int* lista){

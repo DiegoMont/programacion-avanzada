@@ -8,3 +8,4 @@ int getRandomNumber(int min, int max);
 void iniciarSeccion(void* aux);
 void liberarSeccionAnterior(size_t seccionALiberar, int pesoRobot);
 void printProductosAComprar(int id, int* lista);
+void printLista(int* lista);
