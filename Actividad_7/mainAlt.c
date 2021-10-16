@@ -53,8 +53,10 @@ int getRandomNumber(int min, int max){
 void* activarRobot(void* args){
     int lista[numSecciones];
     int pesoRobot = 0;
+    int id = rand() % 10000;
     getLista(lista);
-    printProductosAComprar(lista);
+    printProductosAComprar(id, lista);
+    usleep(100000);
     for(int seccionId = 0; seccionId < numSecciones; seccionId++){
         int entroALaSeccion = 0;
         while(!entroALaSeccion){
@@ -67,18 +69,21 @@ void* activarRobot(void* args){
                 seccion->pesoActual += pesoRobot;
                 int productosAComprar = getProductosAComprar(seccionId, pesoRobot, lista[seccionId]);
                 apartarEspacioNecesario(seccion, productosAComprar);
-                printf("Entrando a seccion %d. Peso actual de: %d\n", seccionId + 1, seccion->pesoActual);
+                printf("Robot %d entra a seccion %d. Peso actual de: %d\n", id, seccionId + 1, seccion->pesoActual);
                 pthread_cond_broadcast(&variableCondicion);
                 pthread_mutex_unlock(&mutex);
                 esperarYRecibirProductos(productosAComprar, &pesoRobot, seccion);
             } else {
                 pthread_cond_wait(&variableCondicion, &mutex);
+                pthread_mutex_unlock(&mutex);
             }
-            pthread_mutex_unlock(&mutex);
         }
     }
+    pthread_mutex_lock(&mutex);
     liberarSeccionAnterior(numSecciones, pesoRobot);
-    puts("Hemos terminado el shopping");
+    pthread_cond_broadcast(&variableCondicion);
+    pthread_mutex_unlock(&mutex);
+    printf("Robot %d ha terminado el shopping\n", id);
     pthread_exit(NULL);
 }
 
@@ -98,11 +103,11 @@ void getLista(int* lista){
     }
 }
 
-void printProductosAComprar(int* lista){
+void printProductosAComprar(int id, int* lista){
     int productosAComprar = 0;
     for(size_t i = 0; i < numSecciones; i++)
         productosAComprar += lista[i];
-    printf("Tengo que comprar %d productos\n", productosAComprar);
+    printf("Robot %d tiene que comprar %d productos\n", id, productosAComprar);
 }
 
 void liberarSeccionAnterior(size_t seccionALiberar, int pesoRobot){
