@@ -55,21 +55,21 @@ void* activarRobot(void* args){
     int pesoRobot = 0;
     int id = rand() % 10000;
     getLista(lista);
-    printLista(lista);
     printProductosAComprar(id, lista);
+    printLista(lista);
     usleep(100000);
     for(int seccionId = 0; seccionId < numSecciones; seccionId++){
         int entroALaSeccion = 0;
+        int productosAComprar = getProductosAComprar(seccionId, pesoRobot, lista[seccionId]);
         while(!entroALaSeccion){
             pthread_mutex_lock(&mutex);
             struct Seccion* seccion = secciones + seccionId;
-            int puedeEntrar = seccion->pesoActual + pesoRobot <= seccion->pesoMaximo;
+            int pesoDeSeccionDespuésDeLaCompra = seccion->pesoActual + pesoRobot + seccion->pesoDeProducto * productosAComprar;
+            int puedeEntrar =  pesoDeSeccionDespuésDeLaCompra <= seccion->pesoMaximo;
             if(puedeEntrar){
                 entroALaSeccion = 1;
                 liberarSeccionAnterior(seccionId, pesoRobot);
-                seccion->pesoActual += pesoRobot;
-                int productosAComprar = getProductosAComprar(seccionId, pesoRobot, lista[seccionId]);
-                apartarEspacioNecesario(seccion, productosAComprar);
+                seccion->pesoActual = pesoDeSeccionDespuésDeLaCompra;
                 printf("Robot %d entra a seccion %d. Peso actual de: %d\n", id, seccionId + 1, seccion->pesoActual);
                 pthread_cond_broadcast(&variableCondicion);
                 pthread_mutex_unlock(&mutex);
@@ -127,31 +127,19 @@ void liberarSeccionAnterior(size_t seccionALiberar, int pesoRobot){
 }
 
 int getProductosAComprar(size_t seccionIndx, int pesoRobot, int productosDeseados){
-    int indxSeccionLimitante = seccionIndx;
     int limitePesoRobot = (secciones + seccionIndx)->pesoMaximo;
     for(int i = seccionIndx + 1; i < numSecciones; i++){
-        if((secciones + i)->pesoMaximo < limitePesoRobot){
+        if((secciones + i)->pesoMaximo < limitePesoRobot)
             limitePesoRobot = (secciones + i)->pesoMaximo;
-            indxSeccionLimitante = i;
-        }
     }
     struct Seccion* seccion = (struct Seccion*) (secciones + seccionIndx);
-    int pesoHipotetico;
-    if(seccionIndx == indxSeccionLimitante)
-        pesoHipotetico = seccion->pesoActual;
-    else
-        pesoHipotetico = pesoRobot;
+    int pesoHipotetico = pesoRobot;
     int productosPermitidos = 0;
     while(pesoHipotetico + seccion->pesoDeProducto <= limitePesoRobot && productosPermitidos < productosDeseados){
         pesoHipotetico += seccion->pesoDeProducto;
         productosPermitidos++;
     }
     return productosPermitidos;
-}
-
-void apartarEspacioNecesario(void* aux, int productos){
-    struct Seccion* seccion = (struct Seccion*) aux;
-    seccion->pesoActual += productos * seccion->pesoDeProducto;
 }
 
 void esperarYRecibirProductos(int totalProductos, int* pesoRobot, void* aux){
