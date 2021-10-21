@@ -1,0 +1,3 @@
+enum EstadoCajero {
+    DISPONIBLE, OCUPADO
+};
