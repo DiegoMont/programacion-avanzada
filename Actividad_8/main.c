@@ -6,11 +6,14 @@
 #include <unistd.h>
 
 #include "main.h"
+#include "TipoCliente.c"
 #include "EstadoCajero.c"
 #include "Cajero.c"
 
 /*
-Hay clientesGeneralesFormados, clientesEmpresarialesFormados
+Cada cliente es un hilo, cuando se crea va a esperar un tiempo aleatorio dependiendo del tipo de operacion a realizar
+Cuando termine la espera, se agrega a la fila
+Un semáforo clientesFormados indicará cuantos clientes quedan en la fila
 En un arreglo guardamos el estado de los cajeros, los primeros tres cajeros son empresariales el resto de las operaciones.
 El estado de los cajeros es disponible u ocupado
 Tenemos otro semáforo que indica cuántos cajerosDisponibles tenemos
@@ -24,6 +27,7 @@ Cuando un cajero está listo para atender incrementa cajerosDisponibles:
 
 const int NUM_CLIENTES_EMPRESARIALES = 50;
 const int NUM_CLIENTES_GENERALES =100;
+const int TOTAL_CLIENTES = NUM_CLIENTES_EMPRESARIALES + NUM_CLIENTES_GENERALES;
 const int NUM_CAJEROS = 8;
 const useconds_t DURACION_DESCANSO = 3000000;
 const useconds_t MIN_TIEMPO_ATENCION = 3000000;
@@ -34,18 +38,22 @@ const useconds_t MIN_TIEMPO_LLEGADA_GENERALES = 5000000;
 const useconds_t MAX_TIEMPO_LLEGADA_GENERALES = 22000000;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-sem_t clientesGeneralesFormados;
-sem_t clientesEmpresarialesFormados;
+sem_t clientesFormados;
 sem_t cajerosDisponibles;
 struct Cajero* cajeros;
-int clientesPorAtender = NUM_CLIENTES_GENERALES + NUM_CLIENTES_EMPRESARIALES;
+int clientesPorAtender = TOTAL_CLIENTES;
 
 int main(){
     srand(time(NULL));
     cajeros = (struct Cajero*) malloc(sizeof(struct Cajero) * NUM_CAJEROS);
-    pthread_t* cajero_threads[NUM_CAJEROS];
+    pthread_t cajero_threads[NUM_CAJEROS];
+    pthread_t clientes[TOTAL_CLIENTES];
     iniciarSemaforos();
     iniciarCajeros(cajero_threads);
+    mandarClientesAlBanco(clientes);
+    for (size_t i = 0; i < TOTAL_CLIENTES; i++)
+        pthread_join(*(clientes + i), NULL);
+    
     for(size_t i = 0; i < NUM_CAJEROS; i++)
         pthread_join(*(cajero_threads + i), NULL);
     // Cleaning up
@@ -54,8 +62,7 @@ int main(){
 }
 
 void iniciarSemaforos(){
-    sem_init(&clientesEmpresarialesFormados, 0, 0);
-    sem_init(&clientesGeneralesFormados, 0, 0);
+    sem_init(&clientesFormados, 0, 0);
     sem_init(&cajerosDisponibles, 0, NUM_CAJEROS);
 }
 
@@ -67,6 +74,27 @@ void iniciarCajeros(pthread_t* cajero_threads){
         setDisponible(cajero);
         pthread_create(cajero_threads + i, NULL, serUnCajero, (void*) cajero);
     }
+}
+
+void mandarClientesAlBanco(pthread_t* clientes){
+    int empresarialesFormados = 0;
+    int generalesFormados = 0;
+    for (size_t i = 0; i < TOTAL_CLIENTES; i++){
+        int randNum = getRandomTimePeriod(1, 10);
+        int tipoCliente = randNum & 1;
+        if(empresarialesFormados == NUM_CLIENTES_EMPRESARIALES)
+            tipoCliente = CLIENTE_GENERAL;
+        if(generalesFormados == NUM_CLIENTES_GENERALES)
+            tipoCliente == CLIENTE_EMPRESARIAL;
+        if(tipoCliente == CLIENTE_EMPRESARIAL){
+            empresarialesFormados++;
+            pthread_create(clientes + i, NULL, realizarOperacionEmpresarial, NULL);
+        } else {
+            generalesFormados++;
+            pthread_create(clientes + i, NULL, realizarOperacionGeneral, NULL);
+        }
+    }
+    
 }
 
 void* realizarOperacionEmpresarial(void* args){
@@ -85,8 +113,7 @@ void* serUnCajero(void* args){
 }
 
 void cleanSemaforos(){
-    sem_destroy(&clientesEmpresarialesFormados);
-    sem_destroy(&clientesGeneralesFormados);
+    sem_destroy(&clientesFormados);
     sem_destroy(&cajerosDisponibles);
 }
 
