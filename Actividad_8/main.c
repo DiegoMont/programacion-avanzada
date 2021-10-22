@@ -1,3 +1,7 @@
+/*
+  Archana Verma Rodríguez   A01335895
+  Diego Montaño Martínez    A01651308
+*/
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
@@ -10,17 +14,6 @@
 #include "EstadoCajero.c"
 #include "Cajero.c"
 #include "Queue.c"
-
-/*
-Hay dos filas clientesEmpresariales, clientesGenerales.
-Hay un semáforo clientesEsperando
-Cada cliente es un hilo, cuando se crea va a esperar un tiempo aleatorio dependiendo del tipo de operacion a realizar
-Cuando termine la espera, se agrega a su fila correspondiente e incrementa el semáforo correspondiente
-
-Para los cajeros:
-Mientras haya clientes por atender esperarán a que sus semáforos se incrementen
-Atienden al cliente correspondiente
-*/
 
 const int NUM_CLIENTES_EMPRESARIALES = 50;
 const int NUM_CLIENTES_GENERALES =100;
@@ -142,7 +135,8 @@ void* serUnCajero(void* args){
             printf("La fila está vacía me pondré a esperar %d\n", cajero->id);
             sem_post(&clientesFormados);
             pthread_mutex_unlock(&mutex);
-            usleep(MAX_TIEMPO_LLEGADA_GENERALES);
+            usleep(DURACION_DESCANSO);
+            cajero->clientesAtendidos = 0;
             continue;
         }
         clientesPorAtender--;
