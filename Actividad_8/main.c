@@ -12,18 +12,14 @@
 #include "Queue.c"
 
 /*
+Hay dos filas clientesEmpresariales, clientesGenerales.
+Hay dos semáforos empresarialesFormados, generalesFormados
 Cada cliente es un hilo, cuando se crea va a esperar un tiempo aleatorio dependiendo del tipo de operacion a realizar
-Cuando termine la espera, se agrega a la fila
-Un semáforo clientesFormados indicará cuantos clientes quedan en la fila
-En un arreglo guardamos el estado de los cajeros, los primeros tres cajeros son empresariales el resto de las operaciones.
-El estado de los cajeros es disponible u ocupado
-Tenemos otro semáforo que indica cuántos cajerosDisponibles tenemos
-Cuando un cajero está listo para atender incrementa cajerosDisponibles:
-  Los clientes checan cuál cajero está disponible:
-    Si es empresarial y son empresariales se van a ese cajero y lo marcan como ocupado
-    Si es empresarial y son generales lo toman únicamente si no hay clientes empresariales esperando
-    Si es general y son generales lo toman
-    Si es general y son empresariales GG
+Cuando termine la espera, se agrega a su fila correspondiente e incrementa el semáforo correspondiente
+
+Para los cajeros:
+Mientras haya clientes por atender esperarán a que sus semáforos se incrementen
+Atienden al cliente correspondiente
 */
 
 const int NUM_CLIENTES_EMPRESARIALES = 50;
