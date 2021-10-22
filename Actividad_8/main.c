@@ -1,14 +1,15 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "main.h"
+#include "Cliente.c"
 #include "TipoCliente.c"
 #include "EstadoCajero.c"
 #include "Cajero.c"
+#include "Queue.c"
 
 /*
 Cada cliente es un hilo, cuando se crea va a esperar un tiempo aleatorio dependiendo del tipo de operacion a realizar
@@ -39,7 +40,6 @@ const useconds_t MAX_TIEMPO_LLEGADA_GENERALES = 22000000;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 sem_t clientesFormados;
-sem_t cajerosDisponibles;
 struct Cajero* cajeros;
 int clientesPorAtender = TOTAL_CLIENTES;
 
