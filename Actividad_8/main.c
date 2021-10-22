@@ -99,6 +99,7 @@ void mandarClientesAlBanco(pthread_t* clientes){
 int idClientes = 1;
 void* realizarOperacionEmpresarial(void* args){
     struct Cliente* cliente = (struct Cliente*) malloc(sizeof(struct Cliente));
+    cliente->tipoCliente = CLIENTE_EMPRESARIAL;
     useconds_t timeToWait = getRandomTimePeriod(MIN_TIEMPO_LLEGADA_EMPRESARIALES, MAX_TIEMPO_LLEGADA_EMPRESARIALES);
     usleep(timeToWait);
     pthread_mutex_lock(&mutex);
@@ -112,6 +113,7 @@ void* realizarOperacionEmpresarial(void* args){
 
 void* realizarOperacionGeneral(void* args){
     struct Cliente* cliente = (struct Cliente*) malloc(sizeof(struct Cliente));
+    cliente->tipoCliente = CLIENTE_GENERAL;
     useconds_t timeToWait = getRandomTimePeriod(MIN_TIEMPO_LLEGADA_GENERALES, MAX_TIEMPO_LLEGADA_GENERALES);
     usleep(timeToWait);
     pthread_mutex_lock(&mutex);
@@ -136,7 +138,7 @@ void* serUnCajero(void* args){
             clienteAAtender = dequeue(clientesGenerales);
         clientesPorAtender--;
         pthread_mutex_unlock(&mutex);
-        printf("El cajero %d está atendiendo al cliente %d\n", cajero->id, clienteAAtender->id);
+        logOperacion(cajero, clienteAAtender);
         useconds_t duracionAtencion = getRandomTimePeriod(MIN_TIEMPO_ATENCION, MAX_TIEMPO_ATENCION);
         usleep(duracionAtencion);
         cajero->clientesAtendidos++;
@@ -163,4 +165,13 @@ int faltanClientesPorAtender(){
     faltanClientes = 0 < clientesPorAtender;
     pthread_mutex_unlock(&mutex);
     return faltanClientes;
+}
+
+void logOperacion(void* cajero, void* cliente){
+    struct Cajero* aux1 = (struct Cajero*) cajero;
+    struct Cliente* aux2 = (struct Cliente*) cliente;
+    if(aux2->tipoCliente == CLIENTE_EMPRESARIAL)
+        printf("El cajero %d está atendiendo al cliente %d con una operación empresarial\n", aux1->id, aux2->id);
+    else
+        printf("El cajero %d está atendiendo al cliente %d con una operación general\n", aux1->id, aux2->id);
 }
