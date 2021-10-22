@@ -12,7 +12,7 @@ struct Queue {
   size_t length;
 };
 
-struct Queue* vector(){
+struct Queue* queue(){
   struct Queue* queue = (struct Queue*) malloc(sizeof(struct Queue));
   queue->length = 0;
   queue->first = NULL;

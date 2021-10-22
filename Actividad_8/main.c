@@ -35,7 +35,10 @@ const useconds_t MIN_TIEMPO_LLEGADA_GENERALES = 5000000;
 const useconds_t MAX_TIEMPO_LLEGADA_GENERALES = 22000000;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-sem_t clientesFormados;
+sem_t empresarialesFormados;
+sem_t generalesFormados;
+struct Queue* clientesEmpresariales;
+struct Queue* clientesGenerales;
 struct Cajero* cajeros;
 int clientesPorAtender = TOTAL_CLIENTES;
 
@@ -44,6 +47,8 @@ int main(){
     cajeros = (struct Cajero*) malloc(sizeof(struct Cajero) * NUM_CAJEROS);
     pthread_t cajero_threads[NUM_CAJEROS];
     pthread_t clientes[TOTAL_CLIENTES];
+    clientesEmpresariales = queue();
+    clientesGenerales = queue();
     iniciarSemaforos();
     iniciarCajeros(cajero_threads);
     mandarClientesAlBanco(clientes);
@@ -58,8 +63,8 @@ int main(){
 }
 
 void iniciarSemaforos(){
-    sem_init(&clientesFormados, 0, 0);
-    sem_init(&cajerosDisponibles, 0, NUM_CAJEROS);
+    sem_init(&empresarialesFormados, 0, 0);
+    sem_init(&generalesFormados, 0, 0);
 }
 
 void iniciarCajeros(pthread_t* cajero_threads){
@@ -67,7 +72,6 @@ void iniciarCajeros(pthread_t* cajero_threads){
         struct Cajero* cajero = cajeros + i;
         cajero->id = i + 1;
         cajero->clientesAtendidos = 0;
-        setDisponible(cajero);
         pthread_create(cajero_threads + i, NULL, serUnCajero, (void*) cajero);
     }
 }
@@ -93,11 +97,30 @@ void mandarClientesAlBanco(pthread_t* clientes){
     
 }
 
+int idClientes = 1;
 void* realizarOperacionEmpresarial(void* args){
+    struct Cliente* cliente = (struct Cliente*) malloc(sizeof(struct Cliente));
+    useconds_t timeToWait = getRandomTimePeriod(MIN_TIEMPO_LLEGADA_EMPRESARIALES, MAX_TIEMPO_LLEGADA_EMPRESARIALES);
+    usleep(timeToWait);
+    pthread_mutex_lock(&mutex);
+    cliente->id = idClientes++;
+    enqueue(clientesEmpresariales, cliente);
+    sem_post(&empresarialesFormados);
+    printf("Se ha formado el cliente %d en Empresariales\n", cliente->id);
+    pthread_mutex_unlock(&mutex);
     pthread_exit(NULL);
 }
 
 void* realizarOperacionGeneral(void* args){
+    struct Cliente* cliente = (struct Cliente*) malloc(sizeof(struct Cliente));
+    useconds_t timeToWait = getRandomTimePeriod(MIN_TIEMPO_LLEGADA_GENERALES, MAX_TIEMPO_LLEGADA_GENERALES);
+    usleep(timeToWait);
+    pthread_mutex_lock(&mutex);
+    cliente->id = idClientes++;
+    enqueue(clientesGenerales, cliente);
+    sem_post(&generalesFormados);
+    printf("Se ha formado el cliente %d en Generales\n", cliente->id);
+    pthread_mutex_unlock(&mutex);
     pthread_exit(NULL);
 }
 
@@ -109,16 +132,10 @@ void* serUnCajero(void* args){
 }
 
 void cleanSemaforos(){
-    sem_destroy(&clientesFormados);
-    sem_destroy(&cajerosDisponibles);
+    sem_destroy(&empresarialesFormados);
+    sem_destroy(&generalesFormados);
 }
 
 useconds_t getRandomTimePeriod(useconds_t min, useconds_t max){
     return (rand() % (max - min + 1)) + min;
-}
-
-void setDisponible(void* aux){
-    struct Cajero* cajero = (struct Cajero*) aux;
-    cajero->estado = DISPONIBLE;
-    sem_post(&cajerosDisponibles);
 }
