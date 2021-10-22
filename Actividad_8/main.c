@@ -138,6 +138,13 @@ void* serUnCajero(void* args){
             clienteAAtender = dequeue(clientesEmpresariales);
         if(clienteAAtender == NULL)
             clienteAAtender = dequeue(clientesGenerales);
+        if(clienteAAtender == NULL){
+            printf("La fila está vacía me pondré a esperar %d\n", cajero->id);
+            sem_post(&clientesFormados);
+            pthread_mutex_unlock(&mutex);
+            usleep(MAX_TIEMPO_LLEGADA_GENERALES);
+            continue;
+        }
         clientesPorAtender--;
         pthread_mutex_unlock(&mutex);
         logOperacion(cajero, clienteAAtender);
