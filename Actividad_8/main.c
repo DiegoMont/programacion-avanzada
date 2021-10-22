@@ -61,6 +61,8 @@ int main(){
     // Cleaning up
     cleanSemaforos();
     free(cajeros);
+    free(clientesEmpresariales);
+    free(clientesGenerales);
 }
 
 void iniciarSemaforos(){
@@ -139,6 +141,7 @@ void* serUnCajero(void* args){
         clientesPorAtender--;
         pthread_mutex_unlock(&mutex);
         logOperacion(cajero, clienteAAtender);
+        free(clienteAAtender);
         useconds_t duracionAtencion = getRandomTimePeriod(MIN_TIEMPO_ATENCION, MAX_TIEMPO_ATENCION);
         usleep(duracionAtencion);
         cajero->clientesAtendidos++;
