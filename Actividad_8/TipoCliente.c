@@ -1,0 +1,3 @@
+enum TipoCliente {
+    CLIENTE_EMPRESARIAL, CLIENTE_GENERAL
+};
