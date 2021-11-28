@@ -1,0 +1,1 @@
+char* getPassword(int passwordSize);
