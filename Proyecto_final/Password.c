@@ -14,13 +14,14 @@ struct Password {
 
 void* initTestPassword(int length){
     struct Password* testPassword = (struct Password*) malloc(sizeof(struct Password));
-    testPassword->strVal = (char*) malloc(sizeof(char) * length);
+    testPassword->strVal = (char*) malloc(sizeof(char) * length + 1);
     testPassword->combinationIndices = (size_t*) malloc(length * sizeof(size_t));
     testPassword->length = length;
     for (size_t i = 0; i < length; i++){
         *(testPassword->strVal + i) = 'a';
         *(testPassword->combinationIndices + i) = 0;
     }
+    *(testPassword->strVal + length) = 0;
     return testPassword;
 }
 
