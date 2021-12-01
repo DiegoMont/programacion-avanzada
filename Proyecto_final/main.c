@@ -1,4 +1,4 @@
-//#include <openssl/sha.h>
+#include <openssl/sha.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -7,10 +7,12 @@
 
 const int PASSWORD_SIZE = 5;
 
+const size_t HASH_LENGTH = 32;
+
 int main(){
     char* userPassword = getPassword(PASSWORD_SIZE);
     unsigned char userHash[32];
-    //SHA256(userPassword, PASSWORD_SIZE, userHash);
+    SHA256(userPassword, PASSWORD_SIZE, userHash);
     puts(userPassword);
     bruteForcePassword(userHash);
     // Cleaning up
@@ -30,13 +32,13 @@ void bruteForcePassword(unsigned char* userHash){
         size_t possibleCombinations = elevateToPow(ALPHABET_LENGTH, currentPasswordLength);
         struct Password* possiblePassword = initTestPassword(currentPasswordLength);
         for(int combination = 0; combination < possibleCombinations; combination++){
-            /* unsigned char testHash[32];
-            SHA256(testPassword, PASSWORD_SIZE, testHash);
+            unsigned char testHash[HASH_LENGTH];
+            SHA256(possiblePassword->strVal, possiblePassword->length, testHash);
             int areHashesEqual = compareHashes(testHash, userHash);
             if(areHashesEqual){
-                puts(testPassword);
+                puts(possiblePassword->strVal);
                 return;
-            } */
+            }
             incrementPassword(possiblePassword);
         }
         destroyPassword(possiblePassword);
@@ -55,7 +57,6 @@ int elevateToPow(int base, int exp){
 void tryPassword(char* testPassword, unsigned char* userHash){}
 
 int compareHashes(unsigned char* hash1, unsigned char* hash2){
-    const size_t HASH_LENGTH = 32;
     for(size_t i = 0; i < HASH_LENGTH; i++){
         if(*(hash1 + i) != *(hash2 + i))
             return 0;
