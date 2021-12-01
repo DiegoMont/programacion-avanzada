@@ -1,19 +1,17 @@
 //#include <openssl/sha.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "main.h"
 #include "Password.c"
 
-const int PASSWORD_SIZE = 2;
+const int PASSWORD_SIZE = 5;
 
 int main(){
     char* userPassword = getPassword(PASSWORD_SIZE);
     unsigned char userHash[32];
     //SHA256(userPassword, PASSWORD_SIZE, userHash);
     puts(userPassword);
-    puts(userHash);
     bruteForcePassword(userHash);
     // Cleaning up
     free(userPassword);
@@ -22,14 +20,14 @@ int main(){
 char* getPassword(int passwordSize){
     printf("Ingrese una contraseña de %d caracteres que contenga solo letras minúsculas: ", passwordSize);
     char* password = (char*) malloc(passwordSize * sizeof(char));
-    strcpy(password, "aa");
+    strcpy(password, "xxjzd");
     //scanf("%s", password);
     return password;
 }
 
 void bruteForcePassword(unsigned char* userHash){
     for(size_t currentPasswordLength = 1; currentPasswordLength <= PASSWORD_SIZE; currentPasswordLength++){
-        size_t possibleCombinations = pow(ALPHABET_LENGTH, currentPasswordLength);
+        size_t possibleCombinations = elevateToPow(ALPHABET_LENGTH, currentPasswordLength);
         struct Password* possiblePassword = initTestPassword(currentPasswordLength);
         for(int combination = 0; combination < possibleCombinations; combination++){
             /* unsigned char testHash[32];
@@ -39,14 +37,13 @@ void bruteForcePassword(unsigned char* userHash){
                 puts(testPassword);
                 return;
             } */
-            puts(possiblePassword->strVal);
             incrementPassword(possiblePassword);
         }
         destroyPassword(possiblePassword);
     }
 }
 
-int pow(int base, int exp){
+int elevateToPow(int base, int exp){
     if(exp == 0)
         return 1;
     int result = base;

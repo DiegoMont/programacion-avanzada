@@ -1,8 +1,10 @@
+#include <stdlib.h>
+
 char const alphabet[] = {
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
 };
 
-const size_t ALPHABET_LENGTH = 10;
+const size_t ALPHABET_LENGTH = 26;
 
 struct Password {
     char* strVal;
@@ -37,7 +39,8 @@ void incrementPassword(void* password){
         size_t newLetterIndex = *(p->combinationIndices + i);
         char correspondingLetter = *(alphabet + newLetterIndex % ALPHABET_LENGTH);
         *(p->strVal + i) = correspondingLetter;
-        if(correspondingLetter != 'a')
+        if(correspondingLetter != *alphabet)
             break;
+        i--;
     }
 }
