@@ -1,12 +1,6 @@
-// gcc singleThreadMain.c -lssl -lcrypto
-
-#include <openssl/sha.h>
-#include <stdio.h>
-#include <string.h>
+// gcc singleThreadmain.c -lssl -lcrypto
 
 #include "main.h"
-#include "Password.c"
-#include "settings.c"
 
 int main(){
     char* userPassword = getPassword(PASSWORD_SIZE);
