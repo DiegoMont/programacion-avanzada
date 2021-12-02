@@ -9,12 +9,10 @@
 #include "Password.c"
 #include "settings.c"
 
-const size_t HASH_LENGTH = 32;
-
 int main(){
     char* userPassword = getPassword(PASSWORD_SIZE);
     unsigned char userHash[32];
-    SHA256(userPassword, PASSWORD_SIZE, userHash);
+    SHA256(userPassword, strlen(userPassword), userHash);
     puts(userPassword);
     #pragma omp parallel
     {
@@ -23,14 +21,6 @@ int main(){
 
     // Cleaning up
     free(userPassword);
-}
-
-char* getPassword(int passwordSize){
-    printf("Ingrese una contraseña de %d caracteres que contenga solo letras minúsculas: ", passwordSize);
-    char* password = (char*) malloc(passwordSize * sizeof(char));
-    strcpy(password, "xxjzd");
-    //scanf("%s", password);
-    return password;
 }
 
 void bruteForcePassword(unsigned char* userHash){
@@ -49,23 +39,4 @@ void bruteForcePassword(unsigned char* userHash){
         }
         destroyPassword(possiblePassword);
     }
-}
-
-int elevateToPow(int base, int exp){
-    if(exp == 0)
-        return 1;
-    int result = base;
-    for (size_t i = 1; i < exp; i++)
-        result *= base;
-    return result;
-}
-
-void tryPassword(char* testPassword, unsigned char* userHash){}
-
-int compareHashes(unsigned char* hash1, unsigned char* hash2){
-    for(size_t i = 0; i < HASH_LENGTH; i++){
-        if(*(hash1 + i) != *(hash2 + i))
-            return 0;
-    }
-    return 1;
 }
