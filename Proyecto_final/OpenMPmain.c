@@ -1,4 +1,4 @@
-// gcc singleThreadmain.c -fopenmp -lssl -lcrypto
+// gcc OpenMPmain.c -fopenmp -lssl -lcrypto
 
 #include <omp.h>
 #include <openssl/sha.h>
