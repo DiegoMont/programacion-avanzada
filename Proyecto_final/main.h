@@ -1,3 +1,10 @@
+#include <openssl/sha.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "Password.c"
+#include "settings.c"
+
 void bruteForcePassword(unsigned char* userHash);
 
 const size_t HASH_LENGTH = 32;
