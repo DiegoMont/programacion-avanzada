@@ -1,4 +1,4 @@
-// mpicc main.c -fopenmp
+// mpicc main.c -fopenmp -lssl -lcrypto
 // mpirun -f machines -n 2 ./a.out
 
 #include "mpi.h"
@@ -10,7 +10,7 @@ static int startFrom;
 int main(int argc, char** argv){
     char* userPassword = getPassword(PASSWORD_SIZE);
     unsigned char userHash[HASH_LENGTH];
-    //SHA256(userPassword, strlen(userPassword), userHash);
+    SHA256(userPassword, strlen(userPassword), userHash);
     puts(userPassword);
     
     int numtasks, id, rc;

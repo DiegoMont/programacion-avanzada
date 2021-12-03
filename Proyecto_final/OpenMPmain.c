@@ -1,4 +1,4 @@
-// gcc OpenMPmain.c -fopenmp
+// gcc OpenMPmain.c -fopenmp -lssl -lcrypto
 
 #include <omp.h>
 #include "main.h"
@@ -6,7 +6,7 @@
 int main(){
     char* userPassword = getPassword(PASSWORD_SIZE);
     unsigned char userHash[HASH_LENGTH];
-    //SHA256(userPassword, strlen(userPassword), userHash);
+    SHA256(userPassword, strlen(userPassword), userHash);
     puts(userPassword);
     bruteForcePassword(userHash);
 
