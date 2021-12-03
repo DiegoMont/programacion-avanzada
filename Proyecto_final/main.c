@@ -1,42 +1,38 @@
-// gcc singleThreadMain.c -fopenmp -lssl -lcrypto
+// mpicc main.c -fopenmp -lssl -lcrypto
+// mpirun -f machines -n 2 ./a.out
 
+#include "mpi.h"
 #include <omp.h>
-#include <openssl/sha.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "main.h"
-#include "Password.c"
-#include "settings.c"
 
-int main(){
+static int startFrom;
+
+int main(int argc, char** argv){
     char* userPassword = getPassword(PASSWORD_SIZE);
-    unsigned char userHash[32];
+    unsigned char userHash[HASH_LENGTH];
     SHA256(userPassword, strlen(userPassword), userHash);
     puts(userPassword);
-    #pragma omp parallel
-    {
-        bruteForcePassword(userHash);
+    
+    int numtasks, id, rc;
+    rc = MPI_Init(&argc, &argv);
+    if(rc != MPI_SUCCESS){
+        puts("Error con MPI");
+        MPI_Abort(MPI_COMM_WORLD, rc);
     }
+    MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
+    MPI_Comm_rank(MPI_COMM_WORLD, &id);
+    startFrom = id == 0 ? 0: 1;
+    bruteForcePassword(userHash);
 
     // Cleaning up
     free(userPassword);
+    MPI_Finalize();
 }
 
 void bruteForcePassword(unsigned char* userHash){
-    for(size_t currentPasswordLength = 1; currentPasswordLength <= PASSWORD_SIZE; currentPasswordLength++){
-        size_t possibleCombinations = elevateToPow(ALPHABET_LENGTH, currentPasswordLength);
-        struct Password* possiblePassword = initTestPassword(currentPasswordLength);
-        #pragma omp for
-        for(int combination = 0; combination < possibleCombinations; combination++){
-            unsigned char testHash[HASH_LENGTH];
-            SHA256(possiblePassword->strVal, possiblePassword->length, testHash);
-            int areHashesEqual = compareHashes(testHash, userHash);
-            if(areHashesEqual){
-                puts(possiblePassword->strVal);
-            }
-            incrementPassword(possiblePassword);
-        }
-        destroyPassword(possiblePassword);
+    size_t possibleCombinations = elevateToPow(ALPHABET_LENGTH, PASSWORD_SIZE);
+    #pragma omp parallel for shared(possibleCombinations)
+    for(int combination = startFrom; combination < possibleCombinations; combination+=2){
+        testPassword(userHash, combination);
     }
 }
