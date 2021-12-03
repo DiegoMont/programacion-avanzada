@@ -8,6 +8,11 @@
 static int startFrom;
 
 int main(int argc, char** argv){
+    char* userPassword = getPassword(PASSWORD_SIZE);
+    unsigned char userHash[HASH_LENGTH];
+    //SHA256(userPassword, strlen(userPassword), userHash);
+    puts(userPassword);
+    
     int numtasks, id, rc;
     rc = MPI_Init(&argc, &argv);
     if(rc != MPI_SUCCESS){
@@ -16,10 +21,6 @@ int main(int argc, char** argv){
     }
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
-    char* userPassword = getPassword(PASSWORD_SIZE);
-    unsigned char userHash[HASH_LENGTH];
-    //SHA256(userPassword, strlen(userPassword), userHash);
-    puts(userPassword);
     startFrom = id == 0 ? 0: 1;
     bruteForcePassword(userHash);
 
